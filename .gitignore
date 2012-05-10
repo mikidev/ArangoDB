@@ -103,3 +103,5 @@ VC++
 /nbproject/private/
 UnitTests/geo_suite
 Doxygen/web
+UnitTests/Cambridge/Makefile.py
+UnitTests/Cambridge/Makefile.am

@@ -65,10 +65,16 @@ namespace triagens {
         /// @brief constructor
         ////////////////////////////////////////////////////////////////////////////////
 
-        LineResponse () : _lineRequest(0) {
+        LineResponse () 
+          : _headerValue(TRI_UNKNOWN_MEM_ZONE),
+            _bodyValue(TRI_UNKNOWN_MEM_ZONE),
+            _lineRequest(0) {
         }
 
-        LineResponse (const char* header, size_t headerLength) : _lineRequest(0) {
+        LineResponse (const char* header, size_t headerLength)
+          : _headerValue(TRI_UNKNOWN_MEM_ZONE),
+            _bodyValue(TRI_UNKNOWN_MEM_ZONE),
+            _lineRequest(0) {
           _headerValue.appendText(header,headerLength);
         }
 
