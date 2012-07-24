@@ -119,13 +119,6 @@ function cachedDijkstraSuite() {
         v2 = graph.getVertex(row[1]);
         if (v1 !== null && v2 !== null) {
           pathes = v1.pathTo(v2, { cached: true });
-          single_result = {
-            'from'   : v1.getId(),
-            'to'     : v2.getId(),
-            'path_length' : pathes[0].length,
-            'number_of_pathes' : pathes.length
-          };
-          results.push(single_result);
         }
       });
 

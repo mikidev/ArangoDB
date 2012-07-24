@@ -740,21 +740,26 @@ Vertex.prototype.determinePredecessors = function (source, options) {
     distances = {},             // { ID => Number }
     current_vertex,             // Vertex
     current_vertex_id;          // ID
-  distances[source_id] = 0;
 
   if (options.cached) {
     predecessors = graph.getCachedPredecessors(this, source);
+    distances = graph.getCachedDistances(this, source);
   }
+  distances[source_id] = 0;
 
   if (!predecessors) {
     predecessors = {};
     while (todo_list.length > 0) {
       current_vertex_id = this._getShortestDistance(todo_list, distances);
-      current_vertex = this._graph.getVertex(current_vertex_id);
+      current_vertex = graph.getVertex(current_vertex_id);
 
       if (current_vertex_id === this.getId()) {
         break;
+      } else if (options.cached && graph.getCachedPredecessors(this, current_vertex) !== undefined) {
+        todo_list.removeLastOccurrenceOf(current_vertex_id);
+        determined_list.push(current_vertex_id);
       } else {
+
         todo_list.removeLastOccurrenceOf(current_vertex_id);
         determined_list.push(current_vertex_id);
 
@@ -1555,6 +1560,49 @@ Graph.prototype.setCachedPredecessors = function (target, source, value) {
   this.predecessors[target.getId()][source.getId()] = value;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Empty the internal cache for Distances
+///
+/// @FUN{@FA{graph}.emptyCachedDistances()
+////////////////////////////////////////////////////////////////////////////////
+
+Graph.prototype.emptyCachedDistances = function () {
+  this.distances = {};
+};
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Get Distances for a pair from the internal cache
+///
+/// @FUN{@FA{graph}.getCachedDistances(@FA{target}), @FA{source}})
+////////////////////////////////////////////////////////////////////////////////
+
+Graph.prototype.getCachedDistances = function (target, source) {
+  var distances;
+
+  if (this.distances[target.getId()]) {
+    distances = this.distances[target.getId()][source.getId()];
+  }
+
+  if (distances === undefined) {
+    distances = {};
+  }
+
+  return distances;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Set Distances for a pair in the internal cache
+///
+/// @FUN{@FA{graph}.setCachedDistances(@FA{target}), @FA{source}, @FA{value}})
+////////////////////////////////////////////////////////////////////////////////
+
+Graph.prototype.setCachedDistances = function (target, source, value) {
+  if (!this.distances[target.getId()]) {
+    this.distances[target.getId()] = {};
+  }
+
+  this.distances[target.getId()][source.getId()] = value;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief number of vertices
