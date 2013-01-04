@@ -240,11 +240,15 @@ a.plain:hover {
 }
 
 .clearicon {
-  opacity: 0.5;
+  opacity: 0.2;
   cursor: pointer;
   margin-top: 3px;
-  right: 23px;
+  right: 25px;
   position: absolute;
+}
+
+.clearicon:hover {
+  opacity: 0.4;
 }
 
 /* Span Override */

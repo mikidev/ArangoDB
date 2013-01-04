@@ -20,6 +20,12 @@ function initShell () {
     clearShell();
   });
   drawWelcomeMessage();
+
+  $('.clearicon').live('click', function () {
+    var divname = $(this).next().attr('id');
+    $('#'+divname).empty();
+    $('#'+divname).val('');
+  });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
