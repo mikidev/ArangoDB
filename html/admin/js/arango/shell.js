@@ -29,6 +29,7 @@ function initShell () {
   $('.reloadicon').live('click', function () {
     location.reload();
   });
+  $('#shellInput').focus();
 
 
 }
