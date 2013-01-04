@@ -26,6 +26,11 @@ function initShell () {
     $('#'+divname).empty();
     $('#'+divname).val('');
   });
+  $('.reloadicon').live('click', function () {
+    location.reload();
+  });
+
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////

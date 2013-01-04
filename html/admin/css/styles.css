@@ -101,9 +101,14 @@
   text-align:left;
 }
 
-
-
 /* Collections View */
+
+.pagination a {
+  color: #7E9246;
+}
+
+.pagination .active a {
+}
 
 .collectionName {
   white-space: nowrap;
@@ -257,7 +262,19 @@ a.plain:hover {
   position: absolute;
 }
 
+.reloadicon {
+  opacity: 0.2;
+  cursor: pointer;
+  margin-top: 3px;
+  top: 20px;
+  right: 45px;
+  position: absolute;
+
 .clearicon:hover {
+  opacity: 0.4;
+}
+
+.reloadicon:hover {
   opacity: 0.4;
 }
 
