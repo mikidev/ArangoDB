@@ -1,0 +1,182 @@
+/* Button override */
+.btn {
+  background: none repeat scroll 0 0 #FFFFFF;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+  color: black !important;
+  font-family: Rockwell,Georgia,"Times New Roman",Times,serif;
+  font-size: 16px;
+  padding-bottom: 5px !important;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 5px !important;
+  text-decoration: none !important;
+  border-radius: 0;
+}
+
+.btn-delete {
+  background: none repeat scroll 0 0 #CC7272 !important;
+  color: white !important;
+}
+
+.btn-primary {
+  background: none repeat scroll 0 0 #5E7B36 !important;
+  color: white !important;
+}
+
+/* Collections Alert */
+
+.collectionTh{
+  width: 30%;
+  text-align:left;
+}
+
+
+
+/* Collections View */
+.collection-text {
+  float: left;
+  position: relative;
+}
+
+.collection-option {
+  float: right;
+  position: relative;
+  margin-top: -17px;
+}
+
+/* BOOTSRAP OVERRIDE */
+.dropdown-menu li > a:hover,
+.dropdown-menu .active > a,
+.dropdown-menu .active > a:hover {
+  background-color: #8AA051 !important;
+}
+
+.navbar-inner-custom a {
+  color: #8AA051 !important;
+}
+
+.navbar-inner-custom {
+  background-color: #FAFAFA !important;
+  background-image: linear-gradient(to bottom, #FFFFFF, #F2F2F2) !important;
+  background-repeat: repeat-x !important;
+  margin-bottom: 20px;
+  background-image: -moz-linear-gradient(top, #FFFFFF, #F2F2F2);
+  background-image: -ms-linear-gradient(top, #FFFFFF, #F2F2F2);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#FFFFFF), to(#F2F2F2));
+  background-image: -webkit-linear-gradient(top, #FFFFFF, #F2F2F2);
+  background-image: -o-linear-gradient(top, #FFFFFF, #F2F2F2);
+  background-image: linear-gradient(top, #FFFFFF, #F2F2F2);
+}
+
+body {
+  background-color: white !important;
+  background: url("../pics/bg_paper.gif") repeat scroll 0 0 #E5E1DD !important;
+}
+
+.navbar .active a {
+  background: url("../pics/nav_active.gif") repeat-x scroll left top #8AA051 !important;
+  color: #FFFFFF;
+}
+
+.nav-collapse .active a {
+  margin-bottom: -5px !important;
+  border-bottom: solid 5px !important;
+  border-color: #8AA051 !important;
+  -webkit-box-shadow: 0px 2px 4px #000000;
+  -moz-box-shadow: 0px 2px 4px #000000;
+  box-shadow: 0px 2px 4px #000000;
+}
+
+.btn-primary {
+  background-image: -ms-linear-gradient(top, #5D7A35, #8AA051);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#5D7A35), to(#8AA051));
+  background-image: -webkit-linear-gradient(top, #5D7A35, #8AA051);
+  background-image: -o-linear-gradient(top, #5D7A35, #8AA051);
+  background-image: -moz-linear-gradient(top, #5D7A35, #8AA051);
+  background-image: linear-gradient(top, #5D7A35, #8AA051);
+  border-color: #8AA051;
+  background-repeat: repeat-x;
+}
+
+.btn-primary:hover {
+  background-color: #8AA051;
+}
+
+/* Customizations */
+
+a.plain:link {
+  color: #333;
+  text-decoration: none;
+}
+
+a.plain:active {
+  color: #333;
+  text-decoration: none;
+}
+
+a.plain:visited {
+  color: #333;
+  text-decoration: none;
+}
+
+a.plain:hover {
+  color: #333;
+  text-decoration: none;
+}
+
+.status-bar {
+    height: 80px;
+}
+
+.about-icon {
+    float: left;
+    margin-right: 12px;
+}
+
+/* Navbar */
+.navlogo {
+  text-shadow: 0 !important;
+}
+
+.navcollection .btn {
+  margin-top: 4px;
+  float: right;
+}
+
+.navcollection {
+  margin-bottom: 20px;
+  width: 900px !important;
+  background-color: #FAFAFA;
+  background-image: linear-gradient(to bottom, #FFFFFF, #F2F2F2);
+  background-repeat: repeat-x;
+}
+
+.navcollection a {
+  display: inline-block;
+}
+
+/* Content */
+#content {
+  margin-top: -25px;
+  min-height: 600px;
+}
+
+.clearicon {
+  opacity: 0.5;
+  cursor: pointer;
+  margin-top: 3px;
+  right: 23px;
+  position: absolute;
+}
+
+/* Span Override */
+.span3 {
+  background-color: #F5F5F5;
+  border-radius: 4px 4px 4px 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 -1px 0 rgba(0, 0, 0, 0.1) inset;;
+}
+
+.span9 {
+  padding-top: 20px;
+  background-color: #F5F5F5;
+}

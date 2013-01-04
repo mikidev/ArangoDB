@@ -1,0 +1,48 @@
+#queryDiv {
+  margin-top: 0px;
+  position: relative;
+  border-radius: 4px 4px 0px 0px;
+  width: 940px !important;
+}
+
+#submitQueryButton {
+  float: right;
+}
+
+.querynavbar {
+  width: 940px !important;
+  background-color: #FAFAFA;
+  background-image: linear-gradient(to bottom, #FFFFFF, #F2F2F2);
+  background-repeat: repeat-x;
+  margin-bottom: 20px;
+}
+
+.querynavbar h3 {
+  padding-top: 5px;
+}
+
+#queryInput {
+  border: 1px solid #DDDDDD;
+  border-radius: 4px 4px 4px 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075);
+  min-height: 200px;
+  font-family: Consolas,"Liberation Mono",Courier,monospace !important;
+  font-size: 12px !important;
+  width: 99%;
+  resize: vertical;
+}
+
+#queryOutput {
+  width: 99%;
+  margin-bottom: 20px;
+  background-color: white;
+  min-height: 200px;
+  overflow-y: auto;
+  resize: vertical !important;
+}
+
+.preQuery {
+  border: 0;
+  border-radius: 0;
+  background-color: white !important;
+}
