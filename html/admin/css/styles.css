@@ -248,6 +248,7 @@ a.plain:hover {
   opacity: 0.2;
   cursor: pointer;
   margin-top: 3px;
+  top: 20px;
   right: 25px;
   position: absolute;
 }
