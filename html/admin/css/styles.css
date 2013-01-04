@@ -219,6 +219,7 @@ a.plain:hover {
 .navcollection .btn {
   margin-top: 4px;
   float: right;
+  color: white !important;
 }
 
 .navcollection {
