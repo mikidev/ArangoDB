@@ -1,4 +1,4 @@
-window.WineView = Backbone.View.extend({
+window.CollectionView = Backbone.View.extend({
 
     initialize: function () {
         this.render();
@@ -57,17 +57,6 @@ window.WineView = Backbone.View.extend({
     },
 
     saveWine: function () {
-        var self = this;
-        this.model.save(null, {
-            success: function (model) {
-                self.render();
-                app.navigate('wines/' + model.id, false);
-                utils.showAlert('Success!', 'Wine saved successfully', 'alert-success');
-            },
-            error: function () {
-                utils.showAlert('Error', 'An error occurred while trying to delete this item', 'alert-error');
-            }
-        });
     },
 
     deleteWine: function () {

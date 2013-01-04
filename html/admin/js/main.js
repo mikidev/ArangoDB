@@ -4,11 +4,10 @@ var AppRouter = Backbone.Router.extend({
     ""                        : "list",
     "collections/page/:page"	: "list",
     "collections/add"         : "addCollection",
-    "collections/:id"         : "collectionDetails",
+    "collections,:id"         : "collectionDetails",
     "about"                   : "about",
     "query"                   : "query",
     "logs"                    : "logs",
-    "statistics"              : "statistics",
     "dashboard"               : "dashboard",
     "shell"                   : "shell"
   },
@@ -27,15 +26,20 @@ var AppRouter = Backbone.Router.extend({
     this.headerView.selectMenuItem('collections-menu');
   },
   collectionDetails: function (id) {
+    console.log(id);
     var wine = new Wine({id: id});
-    wine.fetch({success: function(){
-      $("#content").html(new WineView({model: wine}).el);
-    }});
+    wine.fetch({success: function() {
+      $("#content").html(new CollectionView({model: wine}).el);
+      },
+      error: function(test) {
+        console.log("error"+  JSON.stringify(test));
+      }
+    });
     this.headerView.selectMenuItem();
   },
   addCollection: function() {
     var wine = new Wine();
-    $('#content').html(new WineView({model: wine}).el);
+    $('#content').html(new CollectionView({model: wine}).el);
     this.headerView.selectMenuItem('add-menu');
   },
   about: function () {
@@ -84,7 +88,7 @@ var AppRouter = Backbone.Router.extend({
     }
 });
 
-utils.loadTemplate(['HeaderView', 'WineView', 'WineListItemView', 'AboutView', 'QueryView', 'ShellView', 'StatisticsView', 'LogsView', 'DashboardView'], function() {
+utils.loadTemplate(['HeaderView', 'CollectionView', 'CollectionListItemView', 'AboutView', 'QueryView', 'ShellView', 'StatisticsView', 'LogsView', 'DashboardView'], function() {
     app = new AppRouter();
     Backbone.history.start();
 });

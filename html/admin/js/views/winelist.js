@@ -17,7 +17,7 @@ window.WineListView = Backbone.View.extend({
                         '</div><ul class="thumbnails"></ul>');
 
         for (var i = startPos; i < endPos; i++) {
-            $('.thumbnails', this.el).append(new WineListItemView({model: collections[i]}).render().el);
+            $('.thumbnails', this.el).append(new CollectionListItemView({model: collections[i]}).render().el);
         }
 
         $(this.el).append(new Paginator({model: this.model, page: this.options.page}).render().el);
@@ -107,7 +107,7 @@ window.WineListView = Backbone.View.extend({
     }
 });
 
-window.WineListItemView = Backbone.View.extend({
+window.CollectionListItemView = Backbone.View.extend({
 
     tagName: "li",
 

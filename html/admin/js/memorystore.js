@@ -9,9 +9,11 @@ window.store = {
       contentType: "application/json",
       success: function(data) {
         var tmpStatus;
+        var i;
         for (i=0; i<data.collections.length; i++) {
+          var collection = data.collections[i];
 
-          switch (data.collections[i].status) {
+          switch (collection.status) {
             case 1: tmpStatus = "new born collection"; break; 
             case 2: tmpStatus = "unloaded"; break; 
             case 3: tmpStatus = "loaded"; break; 
@@ -19,13 +21,12 @@ window.store = {
             case 5: tmpStatus = "deleted"; break; 
           }
 
-          window.store.collections[i] = {
-            "id":      i,
-            "collId":  data.collections[i].id,
-            "name":    data.collections[i].name,
+          window.store.collections[collection.name] = {
+            "id":      collection.id,
+            "name":    collection.name,
             "status":  tmpStatus,
-            "type":    data.collections[i].type,
-            "picture": "database.gif" 
+            "type":    collection.type,
+            "picture": "database.gif"
           };
 
         }
@@ -40,19 +41,15 @@ window.store = {
     return _.values(this.collections);
   },
   create: function (model) {
-    this.lastId++;
-    model.set('id', this.lastId);
-    this.collections[this.lastId] = model;
-    return model;
   },
 
   update: function (model) {
-    this.collections[model.id] = model;
+    //this.collections[model.id] = model;
     return model;
   },
 
   destroy: function (model) {
-    delete this.collections[model.id];
+    //delete this.collections[model.id];
     return model;
   }
 

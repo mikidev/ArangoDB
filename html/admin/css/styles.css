@@ -33,6 +33,10 @@
 
 
 /* Collections View */
+
+.thumbnail h5 {
+}
+
 .collection-text {
   float: left;
   position: relative;
@@ -171,9 +175,13 @@ a.plain:hover {
 
 /* Span Override */
 .span3 {
-  background-color: #F5F5F5;
+  //background-color: #F5F5F5;
   border-radius: 4px 4px 4px 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 -1px 0 rgba(0, 0, 0, 0.1) inset;;
+  background: rgb(0, 0, 0) transparent;
+  background: rgba(0, 0, 0, 0.2);
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000);
+  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";
 }
 
 .span9 {
