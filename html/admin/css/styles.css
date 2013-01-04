@@ -22,6 +22,8 @@
   font-size: 20px;
   font-weight: lighter;
   border-left: 1px solid white;
+  text-align: left;
+  padding-left: 15px;
 }
 
 .footerThSmall {
@@ -38,6 +40,8 @@
 .footerThSmall li {
   list-style: square outside none;
   color: #666666;
+  text-align: left;
+  margin-left: 30px;
 }
 
 .footer p {

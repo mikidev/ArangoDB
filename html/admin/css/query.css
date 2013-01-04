@@ -10,6 +10,10 @@
   -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";
 }
 
+#queryDiv form {
+  margin-bottom: 10px;
+}
+
 #submitQueryButton {
   float: right;
 }
