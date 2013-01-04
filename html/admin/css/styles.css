@@ -1,4 +1,5 @@
 /* Footer */
+
 .footer {
   background: url("../pics/footer_hd_bg.png") repeat-x scroll left 10px #4A4A4A;
   font-size: 14px;
@@ -69,6 +70,10 @@
   color: #FFFFFF;
 }
 
+.thumbnail, .navbar-inner, .btn, .btn-primary {
+  border-radius:0;
+}
+
 /* Button override */
 .btn {
   background: none repeat scroll 0 0 #FFFFFF;
@@ -81,7 +86,6 @@
   padding-right: 20px;
   padding-top: 5px !important;
   text-decoration: none !important;
-  border-radius: 0;
 }
 
 .btn-delete {
@@ -135,6 +139,14 @@
   background-color: #8AA051 !important;
 }
 
+.navbar-inner {
+  background-color: #333232 !important;
+}
+
+.navbar-inner .container {
+  background-color: #333232 !important;
+}
+
 .navbar-inner-custom a {
   color: #8AA051 !important;
 }
@@ -166,9 +178,6 @@ body {
   margin-bottom: -5px !important;
   border-bottom: solid 5px !important;
   border-color: #8AA051 !important;
-  -webkit-box-shadow: 0px 2px 4px #000000;
-  -moz-box-shadow: 0px 2px 4px #000000;
-  box-shadow: 0px 2px 4px #000000;
 }
 
 .btn-primary {
@@ -223,6 +232,11 @@ a.plain:hover {
   font-family: "Helvetica Neue",Arial,Helvetica,"Nimbus Sans L",sans-serif !important;
   font-size: 14px;
   font-weight: bold;
+  color: white;
+}
+
+.navbar .nav > li > a:hover {
+  background-color: #8AA051;
 }
 
 .navlogo {
@@ -281,7 +295,6 @@ a.plain:hover {
 /* Span Override */
 .span3 {
   background-color: #F5F5F5;
-  border-radius: 4px 4px 4px 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 -1px 0 rgba(0, 0, 0, 0.1) inset;;
 }
 

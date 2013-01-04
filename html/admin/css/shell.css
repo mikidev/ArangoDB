@@ -1,3 +1,13 @@
+#shellInput {
+  border-radius: 0px 0px 0px 0px !important;
+}
+
+#shellInput:focus {
+  outline:none;
+  border-color:#8AA051;
+  box-shadow:0 0 3px #8AA051;
+}
+
 .shellnavbar {
   background-color: red !important;
   background-color: #FAFAFA !important;
@@ -17,7 +27,6 @@
 
 #shellFooter {
   margin-top: 0;
-  border-radius: 4px 4px 0px 0px;
   background-color:rgba(0,0,0,0.1);
   position: relative;
 }
@@ -29,7 +38,6 @@
   background-color: #FAFAFA;
   background-image: linear-gradient(to bottom, #FFFFFF, #F2F2F2);
   background-repeat: repeat-x;
-  border-radius: 0px 0px 4px 4px;
 }
 
 #shellContent {
@@ -40,7 +48,6 @@
   width: 930px;
   overflow-y: hidden;
   word-wrap: break-word;
-  border-radius: 4px 4px 0px 0px;
 }
 
 .shellError {
