@@ -4,11 +4,12 @@
   background: url("../pics/footer_hd_bg.png") repeat-x scroll left 10px #4A4A4A;
   font-size: 14px;
   margin: 30px auto 0;
-  padding: 0;
   text-align: center;
   position: absolute;
   left: 0;
   right: 0;
+  bottom:200;
+  margin-top:100px;
 }
 
 .footerExtra {
@@ -107,6 +108,28 @@
 .collectionTh{
   width: 30%;
   text-align:left;
+}
+
+/* Collection View */
+.blackbackground {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.collectionViewBtn {
+  margin-left:20px;
+}
+
+.collectionDiv {
+  padding-top: 20px;
+  padding-right:20px;
+}
+
+.collectionDiv2 {
+  background-color: #F5F5F5;
+}
+
+.span1 {
+  width: 210px !important;
 }
 
 /* Collections View */
