@@ -12,7 +12,7 @@ window.CollectionView = Backbone.View.extend({
     events: {
         "change"        : "change",
         "click .save"   : "beforeSave",
-        "click .delete" : "deleteWine",
+        "click .delete" : "deleteCollection",
         "drop #picture" : "dropHandler"
     },
 
@@ -42,31 +42,29 @@ window.CollectionView = Backbone.View.extend({
             utils.displayValidationErrors(check.messages);
             return false;
         }
-        // Upload picture file if a new file was dropped in the drop area
-        if (this.pictureFile) {
-            this.model.set("picture", this.pictureFile.name);
-            utils.uploadFile(this.pictureFile,
-                function () {
-                    self.saveWine();
-                }
-            );
-        } else {
-            this.saveWine();
-        }
+            this.saveCollection();
         return false;
     },
 
-    saveWine: function () {
+    saveCollection: function () {
     },
 
-    deleteWine: function () {
-        this.model.destroy({
-            success: function () {
-                alert('Wine deleted successfully');
+    deleteCollection: function () {
+        var self = this;
+        $.ajax({
+          type: 'DELETE',
+          url: "/_api/collection/" + self.model.attributes.id,
+          success: function () {
+            self.model.destroy({
+              success: function () {
                 window.history.back();
-            }
+              }
+            });
+          },
+          error: function () {
+            alert('Error');
+          }
         });
-        return false;
     },
 
     dropHandler: function (event) {

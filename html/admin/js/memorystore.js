@@ -14,11 +14,11 @@ window.store = {
           var collection = data.collections[i];
 
           switch (collection.status) {
-            case 1: tmpStatus = "new born collection"; break; 
-            case 2: tmpStatus = "unloaded"; break; 
-            case 3: tmpStatus = "loaded"; break; 
-            case 4: tmpStatus = "in the process of being unloaded"; break; 
-            case 5: tmpStatus = "deleted"; break; 
+            case 1: tmpStatus = "new born collection"; break;
+            case 2: tmpStatus = "unloaded"; break;
+            case 3: tmpStatus = "loaded"; break;
+            case 4: tmpStatus = "in the process of being unloaded"; break;
+            case 5: tmpStatus = "deleted"; break;
           }
 
           window.store.collections[collection.name] = {
@@ -28,9 +28,7 @@ window.store = {
             "type":    collection.type,
             "picture": "database.gif"
           };
-
         }
-      //window.store.collections.lastId = data.collections.length;
       }
     });
   },
@@ -49,8 +47,9 @@ window.store = {
   },
 
   destroy: function (model) {
-    //delete this.collections[model.id];
-    return model;
+    delete this.collections[model.attributes.name];
+    arangoAlert("Collection deleted");
+    return false;
   }
 
 };

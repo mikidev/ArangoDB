@@ -4298,10 +4298,10 @@ input[type="submit"].btn.btn-mini {
   color: #ffffff;
   text-align: center;
   text-decoration: none;
-  background-color: #000000;
-  -webkit-border-radius: 4px;
-     -moz-border-radius: 4px;
-          border-radius: 4px;
+  background-color: black;
+  -webkit-border-radius: 0px;
+     -moz-border-radius: 0px;
+          border-radius: 0px;
 }
 
 .tooltip-arrow {

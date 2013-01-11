@@ -26,7 +26,6 @@ var AppRouter = Backbone.Router.extend({
     this.headerView.selectMenuItem('collections-menu');
   },
   collectionDetails: function (id) {
-    console.log(id);
     var wine = new Wine({id: id});
     wine.fetch({success: function() {
       $("#content").html(new CollectionView({model: wine}).el);

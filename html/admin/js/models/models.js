@@ -1,4 +1,4 @@
-window.Wine = Backbone.Model.extend({
+window.Collection = Backbone.Model.extend({
 
     urlRoot: "api/wines",
 

@@ -95,12 +95,38 @@ window.WineListView = Backbone.View.extend({
         contentType: "application/json",
         processData: false,
         success: function(data) {
-          console.log("Collection created");
+          $.ajax({
+            type: "GET",
+            url: "/_api/collection/" + name,
+            contentType: "application/json",
+            processData: false,
+            success: function(data) {
+              var tmpStatus;
+              switch (data.status) {
+                case 1: tmpStatus = "new born collection"; break;
+                case 2: tmpStatus = "unloaded"; break;
+                case 3: tmpStatus = "loaded"; break;
+                case 4: tmpStatus = "in the process of being unloaded"; break;
+                case 5: tmpStatus = "deleted"; break;
+              }
+
+              window.store.collections[data.name] = {
+                "id":      data.id,
+                "name":    data.name,
+                "status":  tmpStatus,
+                "type":    data.type,
+                "picture": "database.gif"
+              };
+              arangoAlert("Collection created");
+            },
+            error: function(data) {
+              arangoAlert("Collection error");
+            }
+          });
           $('#add-collection').modal('hide');
         },
         error: function(data) {
-          console.log("Collection error");
-          console.log(data);
+          return false;
         }
       });
 
