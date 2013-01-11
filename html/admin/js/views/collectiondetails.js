@@ -7,25 +7,34 @@ window.CollectionView = Backbone.View.extend({
     render: function () {
         $(this.el).html(this.template(this.model.toJSON()));
         var collName = location.hash.split(",")[1];
+        if (window.store.collections[collName].status == "unloaded") {
+        }
+        else {
+          $.ajax({
+            type: "GET",
+            url: "/_api/collection/" + collName + "/properties" + "?" + getRandomToken(),
+            contentType: "application/json",
+            processData: false,
+            success: function(data) {
+              $('#collectionSizeBox').show();
+              $('#collectionSyncBox').show();
+              if (data.waitForSync == false) {
+                $('#update-collection-sync').val('false');
+              }
+              else {
+                $('#update-collection-sync').val('true');
+              }
+              $('#update-collection-size').val(data.journalSize);
+              var tmpStatus = convertStatus(data.status);
+              if (tmpStatus === "loaded") {
+                $('#collectionBox').append('<a class="btn btn-unload pull-right collectionViewBtn" href="#">Unload</a>');
+              }
+            },
+            error: function(data) {
 
-        $.ajax({
-          type: "GET",
-          url: "/_api/collection/" + collName + "/properties" + "?" + getRandomToken(),
-          contentType: "application/json",
-          processData: false,
-          success: function(data) {
-            if (data.waitForSync == false) {
-              $('#update-collection-sync').val('false');
             }
-            else {
-              $('#update-collection-sync').val('true');
-            }
-            $('#update-collection-size').val(data.journalSize);
-          },
-          error: function(data) {
-
-          }
-        });
+          });
+        }
 
         return this;
     },
@@ -91,7 +100,6 @@ window.CollectionView = Backbone.View.extend({
           processData: false,
           success: function(data) {
             arangoAlert("Collection renamed");
-            //TODO: change also local storage collection name
           },
           error: function(data) {
             alert(getErrorMessage(data));
@@ -117,6 +125,10 @@ window.CollectionView = Backbone.View.extend({
         });
       }
       if (! failed) {
+        var tempCollection = window.store.collections[checkCollectionName];
+        delete window.store.collections[checkCollectionName];
+        window.store.collections[newColName] = tempCollection;
+        window.store.collections[newColName].name = newColName;
         window.history.back();
       }
       else {

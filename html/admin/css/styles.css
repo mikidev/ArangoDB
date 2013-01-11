@@ -115,6 +115,10 @@
 }
 
 /* Collection View */
+#collectionBox {
+  height: 215px !important;
+}
+
 .blackbackground {
   background-color: rgba(0, 0, 0, 0.15);
 }
@@ -139,7 +143,9 @@
 /* Collections View */
 
 .pagination a {
+  width: 10.1px;
   color: #7E9246;
+  background: none repeat scroll 0 0 rgba(0, 0, 0, 0.15);
 }
 
 .pagination .active a {
@@ -275,10 +281,18 @@ a.plain:hover {
   margin-left: 1px;
 }
 
+.dropdown a {
+  border: 0 !important;
+}
+
+.dropdown a:hover {
+  border: 0 !important;
+}
+
 .navbar .nav > li > a:hover {
   background-color: #8AA051;
-  border-bottom: 3px solid #8AA051;
-  margin-bottom: -3px;
+  border-bottom: 2px solid #8AA051;
+  margin-bottom: -2px;
 }
 
 .navlogo {
@@ -318,6 +332,15 @@ a.plain:hover {
   position: absolute;
 }
 
+.icon-plus-sign {
+  opacity: 0.2;
+  cursor: pointer;
+}
+
+.icon-plus-sign:hover {
+  opacity: 1;
+}
+
 .reloadicon {
   opacity: 0.2;
   cursor: pointer;
@@ -325,13 +348,14 @@ a.plain:hover {
   top: 20px;
   right: 45px;
   position: absolute;
+}
 
 .clearicon:hover {
-  opacity: 0.4;
+  opacity: 1;
 }
 
 .reloadicon:hover {
-  opacity: 0.4;
+  opacity: 1;
 }
 
 /* Span Override */

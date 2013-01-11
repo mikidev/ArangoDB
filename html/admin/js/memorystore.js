@@ -15,7 +15,6 @@ window.store = {
 
           tmpStatus = convertStatus(collection.status);
 
-
           window.store.collections[collection.name] = {
             "id":      collection.id,
             "name":    collection.name,
