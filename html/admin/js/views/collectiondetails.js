@@ -6,6 +6,27 @@ window.CollectionView = Backbone.View.extend({
 
     render: function () {
         $(this.el).html(this.template(this.model.toJSON()));
+        var collName = location.hash.split(",")[1];
+
+        $.ajax({
+          type: "GET",
+          url: "/_api/collection/" + collName + "/properties" + "?" + getRandomToken(),
+          contentType: "application/json",
+          processData: false,
+          success: function(data) {
+            if (data.waitForSync == false) {
+              $('#update-collection-sync').val('false');
+            }
+            else {
+              $('#update-collection-sync').val('true');
+            }
+            $('#update-collection-size').val(data.journalSize);
+          },
+          error: function(data) {
+
+          }
+        });
+
         return this;
     },
 
@@ -17,6 +38,7 @@ window.CollectionView = Backbone.View.extend({
     },
 
     change: function (event) {
+      /*
         // Remove any existing alert message
         utils.hideAlert();
 
@@ -33,20 +55,73 @@ window.CollectionView = Backbone.View.extend({
         } else {
             utils.removeValidationError(target.id);
         }
+        */
     },
 
     beforeSave: function () {
+        /*
         var self = this;
         var check = this.model.validateAll();
         if (check.isValid === false) {
             utils.displayValidationErrors(check.messages);
             return false;
         }
-            this.saveCollection();
+        */
+        this.updateCollection();
         return false;
     },
 
-    saveCollection: function () {
+    updateCollection: function () {
+      var checkCollectionName = location.hash.split(",")[1];
+      var newColName = $('#collectionName').val();
+      var currentid = $('#collectionId').val();
+      //TODO: CHECK VALUES
+      var wfscheck = $('#update-collection-sync').val();
+      var journalSize = JSON.parse($('#update-collection-size').val() * 1024 * 1024);
+      var wfs = (wfscheck == "true");
+      var failed = false;
+
+      if (newColName != checkCollectionName) {
+        $.ajax({
+          type: "PUT",
+          async: false, // sequential calls!
+          url: "/_api/collection/" + checkCollectionName + "/rename",
+          data: '{"name":"' + newColName + '"}',
+          contentType: "application/json",
+          processData: false,
+          success: function(data) {
+            arangoAlert("Collection renamed");
+            //TODO: change also local storage collection name
+          },
+          error: function(data) {
+            alert(getErrorMessage(data));
+            failed = true;
+          }
+        });
+      }
+      if (! failed) {
+        $.ajax({
+          type: "PUT",
+          async: false, // sequential calls!
+          url: "/_api/collection/" + newColName + "/properties",
+          data: '{"waitForSync":' + (wfs ? "true" : "false") + ',"journalSize":' + JSON.stringify(journalSize) + '}',
+          contentType: "application/json",
+          processData: false,
+          success: function(data) {
+            arangoAlert("Saved collection properties");
+          },
+          error: function(data) {
+            alert(getErrorMessage(data));
+            failed = true;
+          }
+        });
+      }
+      if (! failed) {
+        window.history.back();
+      }
+      else {
+        return 0;
+      }
     },
 
     deleteCollection: function () {

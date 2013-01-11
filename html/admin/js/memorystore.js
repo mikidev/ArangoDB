@@ -13,13 +13,8 @@ window.store = {
         for (i=0; i<data.collections.length; i++) {
           var collection = data.collections[i];
 
-          switch (collection.status) {
-            case 1: tmpStatus = "new born collection"; break;
-            case 2: tmpStatus = "unloaded"; break;
-            case 3: tmpStatus = "loaded"; break;
-            case 4: tmpStatus = "in the process of being unloaded"; break;
-            case 5: tmpStatus = "deleted"; break;
-          }
+          tmpStatus = convertStatus(collection.status);
+
 
           window.store.collections[collection.name] = {
             "id":      collection.id,

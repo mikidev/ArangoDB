@@ -15,16 +15,36 @@
                         <label for="name" class="control-label">Name:</label>
 
                         <div class="controls">
-                            <input type="text" id="name" name="name" value="<%= name %>"/>
+                            <input type="text" id="collectionName" name="name" value="<%= name %>"/>
                             <span class="help-inline"></span>
                         </div>
+                    </div>
+
+                    <div class="control-group">
+                      <label for="size" class="control-label">Size:</label>
+
+                      <div class="controls">
+                        <input type="text" id="update-collection-size" name="size" value=""/>
+                        <span class="help-inline"></span>
+                      </div>
+                    </div>
+
+                    <div class="control-group">
+                      <label for="sync" class="control-label">Sync:</label>
+
+                      <div class="controls">
+                        <select id="update-collection-sync">
+                          <option value="false">No</option>
+                          <option value="true">Yes</option>
+                        </select>
+                      </div>
                     </div>
 
                     <div class="control-group">
                         <label for="id" class="control-label">Id:</label>
 
                         <div class="controls">
-                            <input id="wineId" name="id" type="text" value="<%= id === null ? '' : id %>" class="span1"
+                            <input id="collectionId" name="id" type="text" value="<%= id === null ? '' : id %>" class="span1"
                                    disabled/>
                         </div>
                     </div>

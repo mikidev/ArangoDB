@@ -1,5 +1,3 @@
-
-
 function hideArangoAlert() {
   $('.navlogo').tooltip('hide');
 }
@@ -17,4 +15,24 @@ function arangoAlert(content) {
   window.setTimeout(hideArangoAlert, 3000);
 
   return false;
+}
+
+function getRandomToken () {
+  return Math.round(new Date().getTime());
+}
+
+function convertStatus(content) {
+  var tmpStatus = "";
+  switch (content) {
+    case 1: tmpStatus = "new born collection"; break;
+    case 2: tmpStatus = "unloaded"; break;
+    case 3: tmpStatus = "loaded"; break;
+    case 4: tmpStatus = "in the process of being unloaded"; break;
+    case 5: tmpStatus = "deleted"; break;
+  }
+  return tmpStatus;
+}
+
+function convertType(content) {
+
 }

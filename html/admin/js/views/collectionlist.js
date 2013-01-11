@@ -102,13 +102,7 @@ window.WineListView = Backbone.View.extend({
             processData: false,
             success: function(data) {
               var tmpStatus;
-              switch (data.status) {
-                case 1: tmpStatus = "new born collection"; break;
-                case 2: tmpStatus = "unloaded"; break;
-                case 3: tmpStatus = "loaded"; break;
-                case 4: tmpStatus = "in the process of being unloaded"; break;
-                case 5: tmpStatus = "deleted"; break;
-              }
+              tmpStatus = convertStatus(data.status);
 
               window.store.collections[data.name] = {
                 "id":      data.id,
