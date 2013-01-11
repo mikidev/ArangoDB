@@ -79,6 +79,10 @@
   border-radius:0;
 }
 
+.thumbnails {
+  padding-top: 30px;
+}
+
 .thumbnails li {
   background-color: #FAFAFA;
 }
@@ -333,7 +337,9 @@ a.plain:hover {
 }
 
 .icon-plus-sign {
-  opacity: 0.2;
+  margin-top: 35px;
+  margin-right: 20px;
+  opacity: 1;
   cursor: pointer;
 }
 

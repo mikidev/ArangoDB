@@ -13,7 +13,7 @@ window.WineListView = Backbone.View.extend({
         var endPos = Math.min(startPos + 20, len);
 
         $(this.el).html('<div>' +
-                          '<a href="#add-collection" role="button" data-toggle="modal"><i class="pull-right icon-plus-sign"></i></a>' +
+                          '<a href="#add-collection" role="button" data-toggle="modal"><i class="pull-right icon-plus-sign icon-white"></i></a>' +
                         '</div><br/><ul class="thumbnails"></ul>');
 
         for (var i = startPos; i < endPos; i++) {

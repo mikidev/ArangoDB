@@ -34,10 +34,12 @@ window.store = {
   },
   create: function (model) {
   },
-
   update: function (model) {
     //this.collections[model.id] = model;
     return model;
+  },
+  notify: function () {
+    console.log("changed");
   },
 
   destroy: function (model) {
