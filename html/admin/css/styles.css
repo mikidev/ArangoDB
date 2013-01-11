@@ -71,6 +71,10 @@
   color: #FFFFFF;
 }
 
+.nav .pull-right li a {
+  margin-left: 1px;
+}
+
 .thumbnail, .navbar-inner, .btn, .btn-primary {
   border-radius:0;
 }
@@ -260,14 +264,21 @@ a.plain:hover {
 /* Navbar */
 
 .navbar .nav > li > a {
+  padding-top: 6px;
+}
+
+.navbar .nav > li > a {
   font-family: "Helvetica Neue",Arial,Helvetica,"Nimbus Sans L",sans-serif !important;
   font-size: 14px;
   font-weight: bold;
   color: white;
+  margin-left: 1px;
 }
 
 .navbar .nav > li > a:hover {
   background-color: #8AA051;
+  border-bottom: 3px solid #8AA051;
+  margin-bottom: -3px;
 }
 
 .navlogo {
