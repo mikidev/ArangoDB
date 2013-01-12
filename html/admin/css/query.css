@@ -3,7 +3,6 @@
   position: relative;
   width: 940px !important;
 
-  background: rgb(0, 0, 0) transparent;
   background: rgba(0, 0, 0, 0.15);
   filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000);
   -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";
@@ -33,7 +32,7 @@
   margin-top: 3px;
   border: 1px solid #DDDDDD;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075);
-  min-height: 200px;
+  height: 40% !important;
   font-family: Consolas,"Liberation Mono",Courier,monospace !important;
   font-size: 12px !important;
   width: 99%;
@@ -45,7 +44,7 @@
   width: 99%;
   margin-bottom: 20px;
   background-color: white;
-  min-height: 200px;
+  height: 60%;
   overflow-y: auto;
   resize: vertical !important;
 }

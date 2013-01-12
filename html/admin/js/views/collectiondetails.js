@@ -1,11 +1,14 @@
 window.CollectionView = Backbone.View.extend({
 
     initialize: function () {
-        this.render();
+       // this.render();
+      alert("jeje");
     },
 
     render: function () {
-        $(this.el).html(this.template(this.model.toJSON()));
+        //$(this.el).html(this.template(this.model.toJSON()));
+        var myTemplate = $(this.template(this.model.toJSON()));
+        $(myTemplate).modal('show')
         var collName = location.hash.split(",")[1];
         if (window.store.collections[collName].status == "unloaded") {
         }
