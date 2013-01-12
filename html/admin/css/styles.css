@@ -468,7 +468,6 @@ a.plain:hover {
     opacity: 0.4;
     position: absolute;
     width: 14px;
-    z-index: 9999;
 }
 #searchSubmit:hover {
   opacity: 0.6;
