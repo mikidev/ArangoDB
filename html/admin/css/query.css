@@ -1,11 +1,8 @@
 #queryDiv {
-  margin-top: 0px;
   position: relative;
   width: 940px !important;
-
-  background: rgba(0, 0, 0, 0.15);
-  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000);
-  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
 }
 
 #queryDiv form {
@@ -46,6 +43,7 @@
   height: 350px;
   overflow-y: auto;
   resize: vertical !important;
+  border: 1px solid #c0c0c0;
 }
 
 .preQuery {

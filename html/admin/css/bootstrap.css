@@ -929,14 +929,14 @@ textarea {
 
 input:focus,
 textarea:focus {
-  border-color: rgba(138, 160, 81, 0.6);
+  border-color: rgba(138, 160, 81, 0.7);
   outline: 0;
   outline: thin dotted \9;
   /* IE6-9 */
 
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px rgba(138, 160, 81, 0.6);
-     -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px rgba(138, 160, 81, 0.6);
-          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px rgba(138, 160, 81, 0.6);
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px rgba(138, 160, 81, 0.7);
+     -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px rgba(138, 160, 81, 0.7);
+          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px rgba(138, 160, 81, 0.7);
 }
 
 input[type="file"]:focus,
@@ -1753,13 +1753,12 @@ table .span24 {
 [class^="icon-"],
 [class*=" icon-"] {
   display: inline-block;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   *margin-right: .3em;
-  line-height: 14px;
+  line-height: 16px;
   vertical-align: text-top;
-  background-image: url("../img/glyphicons-halflings.png");
-  background-position: 14px 14px;
+  background-image: url("../pics/81.png");
   background-repeat: no-repeat;
 }
 
@@ -2113,7 +2112,13 @@ table .span24 {
 }
 
 .icon-info-sign {
-  background-position: -120px -96px;
+  opacity: 0.2;
+  /* background-position: -120px -96px; */
+}
+
+.icon-info-sign:hover {
+  opacity: 0.8;
+  /* background-position: -120px -96px; */
 }
 
 .icon-screenshot {
@@ -2355,7 +2360,7 @@ table .span24 {
   border-right: 4px solid transparent;
   border-left: 4px solid transparent;
   content: "";
-  opacity: 0.3;
+  opacity: 0.2;
   filter: alpha(opacity=30);
 }
 
@@ -2543,7 +2548,7 @@ table .span24 {
   color: #000000;
   text-decoration: none;
   cursor: pointer;
-  opacity: 0.4;
+  opacity: 0.2;
   filter: alpha(opacity=40);
 }
 
