@@ -21,7 +21,7 @@ var AppRouter = Backbone.Router.extend({
     var wineList = new WineCollection();
     wineList.fetch({
       success: function() {
-        $("#content").html(new WineListView({model: wineList, page: p}).el);
+        $("#content").html(new CollectionListView({model: wineList, page: p}).el);
       }
     });
     this.headerView.selectMenuItem('collections-menu');
@@ -95,7 +95,7 @@ var AppRouter = Backbone.Router.extend({
   }
 });
 
-utils.loadTemplate(['HeaderView', 'CollectionView', 'CollectionListItemView', 'AboutView', 'QueryView', 'ShellView', 'StatisticsView', 'LogsView', 'DashboardView', 'DocumentsView'], function() {
+utils.loadTemplate(['HeaderView', 'CollectionView', 'CollectionListItemView', 'AboutView', 'QueryView', 'ShellView', 'StatisticsView', 'LogsView', 'DashboardView', 'DocumentsView', 'CollectionListView'], function() {
     app = new AppRouter();
     Backbone.history.start();
 });

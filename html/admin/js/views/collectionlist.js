@@ -1,4 +1,4 @@
-window.WineListView = Backbone.View.extend({
+window.CollectionListView = Backbone.View.extend({
 
     initialize: function () {
         this.render();
@@ -11,17 +11,14 @@ window.WineListView = Backbone.View.extend({
         var len = collections.length;
         //var startPos = (this.options.page - 1) * 20;
         //var endPos = Math.min(startPos + 20, len);
-
-        $(this.el).html('<ul class="thumbnails2"><div id="transparentHeader"><div id="transparentPlaceholder"></div>' +
-                          '<a href="#add-collection" role="button" data-toggle="modal">' +
-                          '<img id="plusIcon" src="/_admin/html/pics/plus_icon.png"class="pull-right"></img></a>' +
-                        '</div><br/></ul><ul class="thumbnails"></ul>');
+        $(this.el).html(this.template());
 
         //for (var i = startPos; i < endPos; i++) {
         for (var i = 0; i < len; i++) {
             $('.thumbnails', this.el).append(new CollectionListItemView({model: collections[i]}).render().el);
         }
         //$(this.el).append(new Paginator({model: this.model, page: this.options.page}).render().el);
+/*
 
         $(this.el).append(''+
           '<div id="add-collection" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
@@ -64,7 +61,7 @@ window.WineListView = Backbone.View.extend({
               '<button id="save-new-collection" class="btn btn-primary">Create Collection</button>'+
             '</div>'+
           '</div>');
-
+*/
           $('#save-new-collection').live('click', function () {
             funcVar.saveNewCollection();
           });
@@ -145,3 +142,18 @@ window.CollectionListItemView = Backbone.View.extend({
     }
 
 });
+
+var collEditTemplate = '\
+  <div id="collEditModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">\
+    <div class="modal-header">\
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>\
+      <h3 id="myModalLabel">Modal header</h3>\
+    </div>\
+    <div class="modal-body">\
+      <p>One fine body…</p>\
+    </div>\
+    <div class="modal-footer">\
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>\
+      <button class="btn btn-primary">Save changes</button>\
+    </div>\
+  </div>'
