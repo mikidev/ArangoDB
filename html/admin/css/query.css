@@ -1,11 +1,8 @@
 #queryDiv {
-  margin-top: 0px;
   position: relative;
   width: 940px !important;
-
-  background: rgba(0, 0, 0, 0.15);
-  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000);
-  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
 }
 
 #queryDiv form {
@@ -29,7 +26,7 @@
 }
 
 #queryInput {
-  margin-top: 3px;
+  margin-top: 20px;
   border: 1px solid #DDDDDD;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075);
   height: 40% !important;
@@ -40,13 +37,14 @@
 }
 
 #queryOutput {
-  margin-top: -13px;
   width: 99%;
-  margin-bottom: 20px;
+  margin-top: 6px;
+  margin-bottom: 8px;
   background-color: white;
-  height: 60%;
+  height: 250px;
   overflow-y: auto;
   resize: vertical !important;
+  border: 1px solid #c0c0c0;
 }
 
 .preQuery {

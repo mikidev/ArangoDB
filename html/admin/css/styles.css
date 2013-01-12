@@ -9,9 +9,9 @@
   margin-right: 0px;
   margin-left: 0px;
   margin-bottom: -19px !important;
-  background-color: rgba(255, 255, 255, 0.3);
-  border-top: 1px solid #c0c0c0;
-  border-bottom: 1px solid #c0c0c0;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-top: 1px solid #a0a0a0;
+  border-bottom: 1px solid #a0a0a0;
 }
 
 #transparentHeader i {
@@ -373,13 +373,14 @@ a.plain:hover {
 
 #plusIcon {
   margin-right: 10px;
-  margin-top: 10px;
+  margin-top: 11px;
   margin-right: 22px;
-  opacity: 0.4;
+  opacity: 0.3;
 }
 
 #plusIcon:hover {
-  opacity: 0.6;
+  opacity: 0.8;
+  cursor: pointer;
 }
 
 .reloadicon {
@@ -392,11 +393,13 @@ a.plain:hover {
 }
 
 .clearicon:hover {
-  opacity: 1;
+  opacity: 0.8;
+  cursor: pointer;
 }
 
 .reloadicon:hover {
-  opacity: 1;
+  opacity: 0.8;
+  cursor: pointer;
 }
 
 /* Span Override */
@@ -421,13 +424,15 @@ a.plain:hover {
 }
 
 .span3:hover {
-  background-color: rgba(255, 255, 255, 0.75);
-  /*
-  border-radius: 4px 4px 0 0;
-  -webkit-box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
-     -moz-box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
-          box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
-  */
+  background-color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(138, 160, 81, 0.7);
+  outline: 0;
+  outline: thin dotted \9;
+  /* IE6-9 */
+
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px rgba(138, 160, 81, 0.7);
+     -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px rgba(138, 160, 81, 0.7);
+          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 4px rgba(138, 160, 81, 0.7);
 }
 
 
@@ -465,11 +470,11 @@ a.plain:hover {
     height: 14px;
     margin-left: -18px;
     margin-top: 11px;
-    opacity: 0.4;
+    opacity: 0.3;
     position: absolute;
     width: 14px;
-    z-index: 9999;
 }
 #searchSubmit:hover {
-  opacity: 0.6;
+  opacity: 0.8;
+  cursor: pointer;
 }
