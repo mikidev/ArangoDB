@@ -1,7 +1,15 @@
+/* MODAL */
+.modal {
+  margin-top: -150px;
+}
+
+
 .white {
   color: white;
   padding-left: 2px;
 }
+
+/* COllection list header */
 
 #transparentHeader {
   height: 36px;

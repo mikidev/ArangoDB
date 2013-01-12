@@ -1,3 +1,7 @@
+.shelltrashicon {
+  right:65px;
+}
+
 #submitShellButton {
   position:absolute;
   width: 14px;
@@ -61,9 +65,9 @@
   background-color: #FAFAFA;
   background-image: linear-gradient(to bottom, #FFFFFF, #F2F2F2);
   background-repeat: repeat-x;
-  height: 300px;
+  height: 350px;
   width: 930px;
-  overflow-y: hidden;
+  overflow-y: auto;
   word-wrap: break-word;
 }
 

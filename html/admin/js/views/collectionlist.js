@@ -18,6 +18,7 @@ window.CollectionListView = Backbone.View.extend({
         $('#change-collection-id').val(tmpStore.id);
         $('#change-collection-type').val(tmpStore.type);
         $('#change-collection-status').val(tmpStore.status);
+        console.log("click: "+ tmpStore);
 
         if (tmpStore.status == "unloaded") {
           $('#collectionSizeBox').hide();

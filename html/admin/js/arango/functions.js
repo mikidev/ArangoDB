@@ -47,8 +47,8 @@ function convertStatus(content) {
 function convertType(content) {
   var tmpType = "";
   switch (content) {
-    case 1: tmpStatus = "Document"; break;
-    case 2: tmpStatus = "System"; break;
+    case 2: tmpType = "Document"; break;
+    case 3: tmpType = "Edge"; break;
   }
   return tmpType;
 }

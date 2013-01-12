@@ -8,6 +8,7 @@ window.store = {
       contentType: "application/json",
       success: function(data) {
         var tmpStatus;
+        var tmpType;
         var i;
         for (i=0; i<data.collections.length; i++) {
           var collection = data.collections[i];
