@@ -10,6 +10,113 @@ window.CollectionListView = Backbone.View.extend({
         $(iconClass).live('click', function () {
           self.fillModal(this.id);
         });
+        $('#save-modified-collection').live('click', function () {
+          var collID = $('#change-collection-id').val();
+          self.updateCollection(collID);
+          console.log(collID);
+        });
+    },
+    updateCollection: function (collID) {
+      console.log("collID is: " + collID);
+      var checkCollectionName;
+      var self = this;
+      $.ajax({
+        type: "GET",
+        async: false, // sequential calls!
+        url: "/_api/collection/" + collID,
+        contentType: "application/json",
+        processData: false,
+        success: function(data) {
+          checkCollectionName = data.name;
+        },
+        error: function(data) {
+        }
+      });
+
+      var newColName = $('#change-collection-name').val();
+      var currentid = $('#change-collection-id').val();
+      //TODO: CHECK VALUES
+      var wfscheck = $('#change-collection-sync').val();
+      var journalSize = JSON.parse($('#change-collection-size').val() * 1024 * 1024);
+      var wfs = (wfscheck == "true");
+      var failed = false;
+
+      if (newColName != checkCollectionName) {
+        console.log(newColName);
+        console.log(checkCollectionName);
+        console.log("names are different");
+        $.ajax({
+          type: "PUT",
+          async: false, // sequential calls!
+          url: "/_api/collection/" + checkCollectionName + "/rename",
+          data: '{"name":"' + newColName + '"}',
+          contentType: "application/json",
+          processData: false,
+          success: function(data) {
+            arangoAlert("Collection renamed");
+          },
+          error: function(data) {
+            console.log(JSON.stringify(data));
+            //alert(getErrorMessage(data));
+            failed = true;
+          }
+        });
+      }
+      if (! failed && window.store.collections[checkCollectionName] === 'loaded') {
+        $.ajax({
+          type: "PUT",
+          async: false, // sequential calls!
+          url: "/_api/collection/" + newColName + "/properties",
+          data: '{"waitForSync":' + (wfs ? "true" : "false") + ',"journalSize":' + JSON.stringify(journalSize) + '}',
+          contentType: "application/json",
+          processData: false,
+          success: function(data) {
+            arangoAlert("Saved collection properties");
+          },
+          error: function(data) {
+            //alert(getErrorMessage(data));
+            console.log(JSON.stringify(data));
+            failed = true;
+          }
+        });
+      }
+      if (! failed) {
+        var tempCollection = window.store.collections[checkCollectionName];
+        delete window.store.collections[checkCollectionName];
+        window.store.collections[newColName] = tempCollection;
+        window.store.collections[newColName].name = newColName;
+        $('#change-collection').modal('hide')
+        //TODO TODO TODO
+        var collectionList = new CollectionCollection();
+        collectionList.fetch({
+          success: function() {
+            $("#content").html(new CollectionListView({model: collectionList }).el);
+          }
+        });
+      }
+      else {
+        return 0;
+      }
+      this.liveClick();
+      return 0;
+    },
+    deleteCollection: function () {
+      //TODO: broken function
+        var self = this;
+        $.ajax({
+          type: 'DELETE',
+          url: "/_api/collection/" + self.model.attributes.id,
+          success: function () {
+            self.model.destroy({
+              success: function () {
+                window.history.back();
+              }
+            });
+          },
+          error: function () {
+            alert('Error');
+          }
+        });
     },
     fillModal: function (collName) {
         var tmpStore = window.store.collections[collName];
@@ -18,7 +125,6 @@ window.CollectionListView = Backbone.View.extend({
         $('#change-collection-id').val(tmpStore.id);
         $('#change-collection-type').val(tmpStore.type);
         $('#change-collection-status').val(tmpStore.status);
-        console.log("click: "+ tmpStore);
 
         if (tmpStore.status == "unloaded") {
           $('#collectionSizeBox').hide();
@@ -52,7 +158,7 @@ window.CollectionListView = Backbone.View.extend({
 
     },
     render: function () {
-        var funcVar = this;
+        var self = this;
 
         var collections = this.model.models;
         var len = collections.length;
@@ -66,7 +172,7 @@ window.CollectionListView = Backbone.View.extend({
         }
         //$(this.el).append(new Paginator({model: this.model, page: this.options.page}).render().el);
           $('#save-new-collection').live('click', function () {
-            funcVar.saveNewCollection();
+            self.saveNewCollection();
           });
 
         return this;

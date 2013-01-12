@@ -21,7 +21,7 @@ var AppRouter = Backbone.Router.extend({
     var collectionList = new CollectionCollection();
     collectionList.fetch({
       success: function() {
-        $("#content").html(new CollectionListView({model: collectionList, page: p}).el);
+        $("#content").html(new CollectionListView({model: collectionList }).el);
       }
     });
     this.headerView.selectMenuItem('collections-menu');

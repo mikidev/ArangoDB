@@ -20,8 +20,8 @@ window.DocumentsView = Backbone.View.extend({
       });
     },
     fillTable: function () {
-        collectioName
-        currentPage
+        //collectioName
+       // currentPage
         var documentsPerPage = 10;
         var documentCount = 0;
         var totalPages;
