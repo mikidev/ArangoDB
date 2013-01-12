@@ -6,11 +6,11 @@
 #transparentHeader {
   height: 40px;
   margin-top: 20px !important;
-  margin-right: 35px;
-  margin-left: 35px;
+  margin-right: 20px;
+  margin-left: 20px;
   margin-bottom: -19px !important;
   background-color: black;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.6);
 }
 
 #transparentHeader i {
@@ -97,6 +97,7 @@
 
 .thumbnail, .navbar-inner, .btn, .btn-primary {
   border-radius:0;
+  box-shadow: 0;
 }
 
 .thumbnails2 {
@@ -108,7 +109,7 @@
 }
 
 .thumbnails {
-  padding-left: 25px;
+  padding-left: 10px;
   padding-bottom: 10px;
 }
 
@@ -398,6 +399,11 @@ a.plain:hover {
   background-color: #F5F5F5 !important;
   margin-left: 10px !important;
   margin-bottom: 10px !important;
+}
+
+.span3 a, .span3 p{
+  text-decoration:none !important;
+  border:0;
 }
 
 .thumbnails {

@@ -9,19 +9,19 @@ window.WineListView = Backbone.View.extend({
 
         var collections = this.model.models;
         var len = collections.length;
-        var startPos = (this.options.page - 1) * 20;
-        var endPos = Math.min(startPos + 20, len);
+        //var startPos = (this.options.page - 1) * 20;
+        //var endPos = Math.min(startPos + 20, len);
 
         $(this.el).html('<ul class="thumbnails2"><div id="transparentHeader"><div id="transparentPlaceholder"></div>' +
                           '<a href="#add-collection" role="button" data-toggle="modal">' +
                           '<img id="plusIcon" src="/_admin/html/pics/plus_icon.png"class="pull-right"></img></a>' +
                         '</div><br/></ul><ul class="thumbnails"></ul>');
 
-        for (var i = startPos; i < endPos; i++) {
+        //for (var i = startPos; i < endPos; i++) {
+        for (var i = 0; i < len; i++) {
             $('.thumbnails', this.el).append(new CollectionListItemView({model: collections[i]}).render().el);
         }
-
-        $(this.el).append(new Paginator({model: this.model, page: this.options.page}).render().el);
+        //$(this.el).append(new Paginator({model: this.model, page: this.options.page}).render().el);
 
         $(this.el).append(''+
           '<div id="add-collection" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +

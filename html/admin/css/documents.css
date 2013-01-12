@@ -1,0 +1,15 @@
+#documentsToolbar {
+  height:24px;
+  width: 100%;
+  border: 1px solid #AAAAAA;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+#docPageInput {
+  width:40px;
+}
+
+#docPageForm {
+  display:inline;
+  vertical-align:3px;
+}

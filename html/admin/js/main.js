@@ -4,7 +4,8 @@ var AppRouter = Backbone.Router.extend({
     ""                        : "list",
     "collections/page/:page"	: "list",
     "collections/add"         : "addCollection",
-    "collections,:id"         : "collectionDetails",
+    "collections,:id"         : "documents",
+    "collection,:id"          : "collectionDetails",
     "about"                   : "about",
     "query"                   : "query",
     "logs"                    : "logs",
@@ -84,10 +85,17 @@ var AppRouter = Backbone.Router.extend({
     }
     $('#content').html(this.dashboardView.el);
       this.headerView.selectMenuItem('dashboard-menu');
+    },
+  documents: function () {
+    if (!this.documentsView) {
+      this.documentsView = new DocumentsView();
     }
+    $('#content').html(this.documentsView.el);
+      this.documentsView.render();
+  }
 });
 
-utils.loadTemplate(['HeaderView', 'CollectionView', 'CollectionListItemView', 'AboutView', 'QueryView', 'ShellView', 'StatisticsView', 'LogsView', 'DashboardView'], function() {
+utils.loadTemplate(['HeaderView', 'CollectionView', 'CollectionListItemView', 'AboutView', 'QueryView', 'ShellView', 'StatisticsView', 'LogsView', 'DashboardView', 'DocumentsView'], function() {
     app = new AppRouter();
     Backbone.history.start();
 });
