@@ -1,3 +1,16 @@
+#transparentHeader {
+  height: 20px;
+  margin-right: 20px;
+  margin-left: 20px;
+  background-color: black;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+#transparentHeader i {
+  margin-top: 2px;
+  margin-right: 2px;
+}
+
 /* Footer */
 
 .footer {
@@ -80,7 +93,6 @@
 }
 
 .thumbnails {
-  padding-top: 30px;
 }
 
 .thumbnails li {
@@ -285,13 +297,6 @@ a.plain:hover {
   margin-left: 1px;
 }
 
-.dropdown a {
-  border: 0 !important;
-}
-
-.dropdown a:hover {
-  border: 0 !important;
-}
 
 .navbar .nav > li > a:hover {
   background-color: #8AA051;
@@ -337,14 +342,12 @@ a.plain:hover {
 }
 
 .icon-plus-sign {
-  margin-top: 35px;
-  margin-right: 20px;
-  opacity: 1;
+  opacity: 1 !important;
   cursor: pointer;
 }
 
 .icon-plus-sign:hover {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 .reloadicon {
@@ -376,4 +379,9 @@ a.plain:hover {
 .span9 {
   padding-top: 20px;
   background-color: #F5F5F5;
+}
+
+.dropdown-toggle:hover {
+  height:16px !important;
+  border: 0;
 }
