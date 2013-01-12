@@ -8,19 +8,24 @@ window.store = {
       contentType: "application/json",
       success: function(data) {
         var tmpStatus;
+        var tmpType;
         var i;
         for (i=0; i<data.collections.length; i++) {
           var collection = data.collections[i];
+          if (collection.name.substr(0, 1) == "_") {
+          }
+          else {
+            tmpStatus = convertStatus(collection.status);
+            tmpType = convertType(collection.type);
 
-          tmpStatus = convertStatus(collection.status);
-
-          window.store.collections[collection.name] = {
-            "id":      collection.id,
-            "name":    collection.name,
-            "status":  tmpStatus,
-            "type":    collection.type,
-            "picture": "database.gif"
-          };
+            window.store.collections[collection.name] = {
+              "id":      collection.id,
+              "name":    collection.name,
+              "status":  tmpStatus,
+              "type":    tmpType,
+              "picture": "database.gif"
+            };
+          }
         }
       }
     });

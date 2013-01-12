@@ -45,5 +45,10 @@ function convertStatus(content) {
 }
 
 function convertType(content) {
-
+  var tmpType = "";
+  switch (content) {
+    case 2: tmpType = "Document"; break;
+    case 3: tmpType = "Edge"; break;
+  }
+  return tmpType;
 }
