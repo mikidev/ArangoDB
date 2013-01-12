@@ -1,4 +1,3 @@
-// The in-memory Store. Encapsulates logic to access wine data.
 window.store = {
   collections: {},
   populate: function () {

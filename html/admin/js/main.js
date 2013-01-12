@@ -18,18 +18,18 @@ var AppRouter = Backbone.Router.extend({
   },
   list: function(page) {
     var p = page ? parseInt(page, 10) : 1;
-    var wineList = new WineCollection();
-    wineList.fetch({
+    var collectionList = new CollectionCollection();
+    collectionList.fetch({
       success: function() {
-        $("#content").html(new CollectionListView({model: wineList, page: p}).el);
+        $("#content").html(new CollectionListView({model: collectionList, page: p}).el);
       }
     });
     this.headerView.selectMenuItem('collections-menu');
   },
   collectionDetails: function (id) {
-    var wine = new Wine({id: id});
-    wine.fetch({success: function() {
-      $("#content").html(new CollectionView({model: wine}).el);
+    var collection = new Collection({id: id});
+    collection.fetch({success: function() {
+      $("#content").html(new CollectionView({model: collection}).el);
       },
       error: function(test) {
         console.log("error"+  JSON.stringify(test));
@@ -38,8 +38,8 @@ var AppRouter = Backbone.Router.extend({
     this.headerView.selectMenuItem();
   },
   addCollection: function() {
-    var wine = new Wine();
-    $('#content').html(new CollectionView({model: wine}).el);
+    var collection = new Collection();
+    $('#content').html(new CollectionView({model: collection}).el);
     this.headerView.selectMenuItem('add-menu');
   },
   about: function () {
