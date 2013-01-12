@@ -2,8 +2,49 @@ window.CollectionListView = Backbone.View.extend({
 
     initialize: function () {
         this.render();
+        this.liveClick();
     },
+    liveClick: function () {
+        var self = this;
+        var iconClass = '.icon-info-sign';
+        $(iconClass).live('click', function () {
+          self.fillModal(this.id);
+        });
+    },
+    fillModal: function (collName) {
+        if (window.store.collections[collName].status == "unloaded") {
+          $('#collectionSizeBox').hide();
+          $('#collectionSyncBox').hide();
+        }
+        else {
+          $.ajax({
+            type: "GET",
+            url: "/_api/collection/" + collName + "/properties" + "?" + getRandomToken(),
+            contentType: "application/json",
+            processData: false,
+            success: function(data) {
+              $('#collectionSizeBox').show();
+              $('#collectionSyncBox').show();
+              if (data.waitForSync == false) {
+                $('#change-collection-sync').val('false');
+              }
+              else {
+                $('#change-collection-sync').val('true');
+              }
+              $('#change-collection-size').val(data.journalSize);
+              var tmpStatus = convertStatus(data.status);
+              if (tmpStatus === "loaded") {
+                $('#collectionBox').append('<a class="btn btn-unload pull-right collectionViewBtn" href="#">Unload</a>');
+              }
+            },
+            error: function(data) {
 
+            }
+          });
+        }
+        return this;
+
+    },
     render: function () {
         var funcVar = this;
 
@@ -18,50 +59,6 @@ window.CollectionListView = Backbone.View.extend({
             $('.thumbnails', this.el).append(new CollectionListItemView({model: collections[i]}).render().el);
         }
         //$(this.el).append(new Paginator({model: this.model, page: this.options.page}).render().el);
-/*
-
-        $(this.el).append(''+
-          '<div id="add-collection" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
-            '<div class="modal-header">'+
-              '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>'+
-              '<h3>New Collection</h3>'+
-            '</div>'+
-            '<div class="modal-body">'+
-              '<table>'+
-                '<tr>'+
-                  '<th class="collectionTh">Name:</th>'+
-                  '<th><input type="text" id="new-collection-name" name="name" value=""/></th>'+
-                '</tr>'+
-                '<tr>'+
-                  '<th class="collectionTh">Size:</th>'+
-                  '<th><input type="text" id="new-collection-size" name="size" value=""/></th>'+
-                '</tr>'+
-                '<tr>'+
-                  '<th class="collectionTh">Sync:</th>'+
-                  '<th>'+
-                    '<select id="new-collection-sync">'+
-                      '<option value="false">No</option>'+
-                      '<option value="true">Yes</option>'+
-                    '</select>'+
-                  '</th>'+
-                '</tr>'+
-                '<tr>'+
-                  '<th class="collectionTh">Type:</th>'+
-                  '<th>'+
-                    '<select id="new-collection-type">'+
-                      '<option value="3">Document</option>'+
-                      '<option value="2">Edge</option>'+
-                    '</select>'+
-                  '</th>'+
-                '</tr>'+
-              '</table>'+
-            '</div>'+
-            '<div class="modal-footer">'+
-              '<button class="btn" data-dismiss="modal" aria-hidden="true">Abort</button>'+
-              '<button id="save-new-collection" class="btn btn-primary">Create Collection</button>'+
-            '</div>'+
-          '</div>');
-*/
           $('#save-new-collection').live('click', function () {
             funcVar.saveNewCollection();
           });
@@ -142,18 +139,3 @@ window.CollectionListItemView = Backbone.View.extend({
     }
 
 });
-
-var collEditTemplate = '\
-  <div id="collEditModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">\
-    <div class="modal-header">\
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>\
-      <h3 id="myModalLabel">Modal header</h3>\
-    </div>\
-    <div class="modal-body">\
-      <p>One fine body…</p>\
-    </div>\
-    <div class="modal-footer">\
-      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>\
-      <button class="btn btn-primary">Save changes</button>\
-    </div>\
-  </div>'
