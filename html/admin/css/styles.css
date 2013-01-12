@@ -4,9 +4,11 @@
 }
 
 #transparentHeader {
-  height: 20px;
-  margin-right: 20px;
-  margin-left: 20px;
+  height: 40px;
+  margin-top: 20px !important;
+  margin-right: 35px;
+  margin-left: 35px;
+  margin-bottom: -19px !important;
   background-color: black;
   background-color: rgba(0, 0, 0, 0.2);
 }
@@ -97,7 +99,17 @@
   border-radius:0;
 }
 
+.thumbnails2 {
+  padding-top: 1px !important;
+  background-color: rgba(0, 0, 0, 0.15);
+  margin-left:0;
+  margin-bottom:0;
+  width:100%;
+}
+
 .thumbnails {
+  padding-left: 25px;
+  padding-bottom: 10px;
 }
 
 .thumbnails li {
@@ -164,7 +176,13 @@
 /* Collections View */
 
 .pagination a {
-  width: 10.1px;
+  padding: 0;
+  width: 20px !important;
+  height: 20px !important;
+  padding-bottom: 13px;
+  padding-left: 5px;
+  padding-right: 5px;
+  font-size: 11px;
   color: #7E9246;
   background: none repeat scroll 0 0 rgba(0, 0, 0, 0.15);
 }
@@ -331,9 +349,11 @@ a.plain:hover {
   display: inline-block;
 }
 
+
+
 /* Content */
 #content {
-  margin-top: -25px;
+  margin-top: -30px;
   min-height: 500px;
 }
 
@@ -346,13 +366,9 @@ a.plain:hover {
   position: absolute;
 }
 
-.icon-plus-sign {
-  opacity: 1 !important;
-  cursor: pointer;
-}
-
-.icon-plus-sign:hover {
-  opacity: 1 !important;
+#plusIcon {
+  margin-right: 10px;
+  margin-top: 10px;
 }
 
 .reloadicon {
@@ -373,9 +389,18 @@ a.plain:hover {
 }
 
 /* Span Override */
+.span12 {
+  padding-top: 0px !important;
+}
+
+
 .span3 {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 -1px 0 rgba(0, 0, 0, 0.1) inset;;
   background-color: #F5F5F5 !important;
+  margin-left: 10px !important;
+  margin-bottom: 10px !important;
+}
+
+.thumbnails {
 }
 
 .span3 a {
