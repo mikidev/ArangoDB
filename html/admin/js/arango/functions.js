@@ -1,3 +1,14 @@
+function countCollections () {
+  var count = 0;
+  self = store.collections;
+  for(var prop in self) {
+    if(self.hasOwnProperty(prop))
+      ++count;
+  }
+  $('#transparentPlaceholder').html('<p class="pull-left white">Total collections: ' + count + '</p>');
+  return count;
+}
+
 function hideArangoAlert() {
   $('.navlogo').tooltip('hide');
 }

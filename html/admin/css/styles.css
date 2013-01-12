@@ -1,3 +1,8 @@
+.white {
+  color: white;
+  padding-left: 2px;
+}
+
 #transparentHeader {
   height: 20px;
   margin-right: 20px;

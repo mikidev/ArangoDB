@@ -35,7 +35,6 @@ window.CollectionView = Backbone.View.extend({
             }
           });
         }
-
         return this;
     },
 

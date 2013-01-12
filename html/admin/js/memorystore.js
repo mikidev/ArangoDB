@@ -35,7 +35,6 @@ window.store = {
   create: function (model) {
   },
   update: function (model) {
-    //this.collections[model.id] = model;
     return model;
   },
   notify: function () {
@@ -51,7 +50,6 @@ window.store = {
 };
 
 store.populate();
-
 // Overriding Backbone's sync method. Replace the default RESTful services-based implementation
 // with a simple in-memory approach.
 Backbone.sync = function (method, model, options) {
