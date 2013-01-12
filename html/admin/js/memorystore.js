@@ -13,12 +13,13 @@ window.store = {
           var collection = data.collections[i];
 
           tmpStatus = convertStatus(collection.status);
+          tmpType = convertType(collection.type);
 
           window.store.collections[collection.name] = {
             "id":      collection.id,
             "name":    collection.name,
             "status":  tmpStatus,
-            "type":    collection.type,
+            "type":    tmpType,
             "picture": "database.gif"
           };
         }

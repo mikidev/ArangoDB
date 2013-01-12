@@ -12,9 +12,17 @@ window.CollectionListView = Backbone.View.extend({
         });
     },
     fillModal: function (collName) {
-        if (window.store.collections[collName].status == "unloaded") {
+        var tmpStore = window.store.collections[collName];
+
+        $('#change-collection-name').val(tmpStore.name);
+        $('#change-collection-id').val(tmpStore.id);
+        $('#change-collection-type').val(tmpStore.type);
+        $('#change-collection-status').val(tmpStore.status);
+
+        if (tmpStore.status == "unloaded") {
           $('#collectionSizeBox').hide();
           $('#collectionSyncBox').hide();
+          $('#change-collection').modal('show')
         }
         else {
           $.ajax({
@@ -32,10 +40,7 @@ window.CollectionListView = Backbone.View.extend({
                 $('#change-collection-sync').val('true');
               }
               $('#change-collection-size').val(data.journalSize);
-              var tmpStatus = convertStatus(data.status);
-              if (tmpStatus === "loaded") {
-                $('#collectionBox').append('<a class="btn btn-unload pull-right collectionViewBtn" href="#">Unload</a>');
-              }
+              $('#change-collection').modal('show')
             },
             error: function(data) {
 

@@ -45,5 +45,10 @@ function convertStatus(content) {
 }
 
 function convertType(content) {
-
+  var tmpType = "";
+  switch (content) {
+    case 1: tmpStatus = "Document"; break;
+    case 2: tmpStatus = "System"; break;
+  }
+  return tmpType;
 }
