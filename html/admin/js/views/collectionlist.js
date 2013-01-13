@@ -1,13 +1,16 @@
 window.CollectionListView = Backbone.View.extend({
 
     initialize: function () {
-        this.render();
-        this.liveClick();
+      this.render();
+      this.liveClick();
     },
     liveClick: function () {
         var self = this;
         var iconClass = '.icon-info-sign';
+        console.log("first1");
+
         $(iconClass).live('click', function () {
+          console.log("first");
           self.fillModal(this.id);
         });
         $('#save-modified-collection').live('click', function () {
@@ -19,14 +22,15 @@ window.CollectionListView = Backbone.View.extend({
       var self = this;
 
       //TODO: CHECK VALUES
+      var currentid = $('#change-collection-id').val();
+      var newColName = $('#change-collection-name').val();
       var wfscheck = $('#change-collection-sync').val();
       var journalSize = JSON.parse($('#change-collection-size').val() * 1024 * 1024);
       var wfs = (wfscheck == "true");
       var failed = false;
-      var currentid = $('#change-collection-id').val();
-      var newColName = $('#change-collection-name').val();
 
       console.log($('#change-collection-name').val());
+      console.log($('#change-collection-name'));
       console.log("new coll name: "+ newColName);
       console.log("old coll name: "+ checkCollectionName);
 
@@ -67,28 +71,23 @@ window.CollectionListView = Backbone.View.extend({
         });
       }
       if (! failed) {
+        //saving collections content
         var tempCollection = window.store.collections[checkCollectionName];
+        //delete old local collection
         delete window.store.collections[checkCollectionName];
+        //restore old collection with new name 
         window.store.collections[newColName] = tempCollection;
         window.store.collections[newColName].name = newColName;
+        //hide modal
         $('#change-collection').modal('hide')
-        //TODO TODO TODO
-/*        var collectionList = new CollectionCollection();
-        collectionList.fetch({
-          success: function() {
-            $("#content").html(new CollectionListView({model: collectionList }).el);
-          }
-        });
-        */
+        //refresh view
+        this.render();
+        console.log("render");
       }
-      else {
-        return 0;
-      }
-      window.location.hash = "";
-      //this.liveClick();
     },
     deleteCollection: function () {
       //TODO: broken function
+      /*
         var self = this;
         $.ajax({
           type: 'DELETE',
@@ -103,7 +102,7 @@ window.CollectionListView = Backbone.View.extend({
           error: function () {
             alert('Error');
           }
-        });
+        });*/
     },
     fillModal: function (collName) {
         $('#currentCollectionName').html(collName);
@@ -150,6 +149,7 @@ window.CollectionListView = Backbone.View.extend({
         var self = this;
 
         var collections = this.model.models;
+        console.log(collections.length);
         var len = collections.length;
         //var startPos = (this.options.page - 1) * 20;
         //var endPos = Math.min(startPos + 20, len);
@@ -160,9 +160,9 @@ window.CollectionListView = Backbone.View.extend({
             $('.thumbnails', this.el).append(new CollectionListItemView({model: collections[i]}).render().el);
         }
         //$(this.el).append(new Paginator({model: this.model, page: this.options.page}).render().el);
-          $('#save-new-collection').live('click', function () {
-            self.saveNewCollection();
-          });
+        $('#save-new-collection').live('click', function () {
+          self.saveNewCollection();
+        });
 
         return this;
     },

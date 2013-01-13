@@ -17,11 +17,12 @@ var AppRouter = Backbone.Router.extend({
     $('.header').html(this.headerView.el);
   },
   list: function(page) {
-    var p = page ? parseInt(page, 10) : 1;
+    //var p = page ? parseInt(page, 10) : 1;
     var collectionList = new CollectionCollection();
     collectionList.fetch({
       success: function() {
-        $("#content").html(new CollectionListView({model: collectionList }).el);
+        this.TEST = new CollectionListView({model: collectionList });
+        $("#content").html(this.TEST.el);
       }
     });
     this.headerView.selectMenuItem('collections-menu');
