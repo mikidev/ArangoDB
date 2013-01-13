@@ -11,13 +11,11 @@ window.CollectionListView = Backbone.View.extend({
           self.fillModal(this.id);
         });
         $('#save-modified-collection').live('click', function () {
-          var collID = $('#change-collection-id').val();
-          self.updateCollection(collID);
-          console.log(collID);
+            self.updateCollection();
         });
     },
-    updateCollection: function (collID) {
-      console.log("collID is: " + collID);
+    updateCollection: function () {
+      var collID = $('#change-collection-id').val();
       var checkCollectionName;
       var self = this;
       $.ajax({
@@ -30,6 +28,7 @@ window.CollectionListView = Backbone.View.extend({
           checkCollectionName = data.name;
         },
         error: function(data) {
+          console.log("error");
         }
       });
 
@@ -42,9 +41,6 @@ window.CollectionListView = Backbone.View.extend({
       var failed = false;
 
       if (newColName != checkCollectionName) {
-        console.log(newColName);
-        console.log(checkCollectionName);
-        console.log("names are different");
         $.ajax({
           type: "PUT",
           async: false, // sequential calls!
@@ -90,6 +86,7 @@ window.CollectionListView = Backbone.View.extend({
         var collectionList = new CollectionCollection();
         collectionList.fetch({
           success: function() {
+            $("#content").html("");
             $("#content").html(new CollectionListView({model: collectionList }).el);
           }
         });
@@ -97,8 +94,7 @@ window.CollectionListView = Backbone.View.extend({
       else {
         return 0;
       }
-      this.liveClick();
-      return 0;
+      //this.liveClick();
     },
     deleteCollection: function () {
       //TODO: broken function
@@ -119,6 +115,7 @@ window.CollectionListView = Backbone.View.extend({
         });
     },
     fillModal: function (collName) {
+        console.log(window.location.hash);
         var tmpStore = window.store.collections[collName];
 
         $('#change-collection-name').val(tmpStore.name);

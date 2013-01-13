@@ -1,8 +1,9 @@
 #queryDiv {
   position: relative;
-  width: 940px !important;
+  width: 900px !important;
   background: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
+  margin-top:0;
 }
 
 #queryDiv form {
