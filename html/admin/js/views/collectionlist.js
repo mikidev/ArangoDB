@@ -15,30 +15,20 @@ window.CollectionListView = Backbone.View.extend({
         });
     },
     updateCollection: function () {
-      var collID = $('#change-collection-id').val();
-      var checkCollectionName;
+      var checkCollectionName = $('#currentCollectionName').html();
       var self = this;
-      $.ajax({
-        type: "GET",
-        async: false, // sequential calls!
-        url: "/_api/collection/" + collID,
-        contentType: "application/json",
-        processData: false,
-        success: function(data) {
-          checkCollectionName = data.name;
-        },
-        error: function(data) {
-          console.log("error");
-        }
-      });
 
-      var newColName = $('#change-collection-name').val();
-      var currentid = $('#change-collection-id').val();
       //TODO: CHECK VALUES
       var wfscheck = $('#change-collection-sync').val();
       var journalSize = JSON.parse($('#change-collection-size').val() * 1024 * 1024);
       var wfs = (wfscheck == "true");
       var failed = false;
+      var currentid = $('#change-collection-id').val();
+      var newColName = $('#change-collection-name').val();
+
+      console.log($('#change-collection-name').val());
+      console.log("new coll name: "+ newColName);
+      console.log("old coll name: "+ checkCollectionName);
 
       if (newColName != checkCollectionName) {
         $.ajax({
@@ -83,17 +73,18 @@ window.CollectionListView = Backbone.View.extend({
         window.store.collections[newColName].name = newColName;
         $('#change-collection').modal('hide')
         //TODO TODO TODO
-        var collectionList = new CollectionCollection();
+/*        var collectionList = new CollectionCollection();
         collectionList.fetch({
           success: function() {
-            $("#content").html("");
             $("#content").html(new CollectionListView({model: collectionList }).el);
           }
         });
+        */
       }
       else {
         return 0;
       }
+      window.location.hash = "";
       //this.liveClick();
     },
     deleteCollection: function () {
@@ -115,10 +106,11 @@ window.CollectionListView = Backbone.View.extend({
         });
     },
     fillModal: function (collName) {
-        console.log(window.location.hash);
+        $('#currentCollectionName').html(collName);
+        console.log("hier : "+ collName);
         var tmpStore = window.store.collections[collName];
-
-        $('#change-collection-name').val(tmpStore.name);
+        console.log(tmpStore);
+        $('#change-collection-name').val(collName);
         $('#change-collection-id').val(tmpStore.id);
         $('#change-collection-type').val(tmpStore.type);
         $('#change-collection-status').val(tmpStore.status);
