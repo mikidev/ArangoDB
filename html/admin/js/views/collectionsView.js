@@ -14,6 +14,12 @@ var collectionsView = Backbone.View.extend({
     }, this);
 
     return this;
+  },
+  events: {
+    "click .icon-info-sign" : "details"
+  },
+  details: function() {
+    console.log(this);
   }
 
 });

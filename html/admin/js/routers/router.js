@@ -4,7 +4,7 @@ $(document).ready(function() {
 
     routes: {
       ""                         : "collections",
-      "collection/:colid/"       : "collection",
+      "collection/:colid"        : "collection",
       "collection/:colid/all"    : "documents",
       "collection/:colid/:docid" : "document",
       "shell"                    : "shell",
@@ -20,14 +20,14 @@ $(document).ready(function() {
       this.footerView.render();
     },
     collections: function() {
-      var arangoCollectionsStore = new window.arangoCollections();
+      window.arangoCollectionsStore = new window.arangoCollections();
 
       var naviView = this.naviView;
 
-      arangoCollectionsStore.fetch({
+      window.arangoCollectionsStore.fetch({
         success: function () {
           var collectionsView = new window.collectionsView({
-            collection: arangoCollectionsStore
+            collection: window.arangoCollectionsStore
           });
           collectionsView.render();
           naviView.selectMenuItem('collections-menu');
@@ -35,9 +35,16 @@ $(document).ready(function() {
       });
     },
     collection: function(colid) {
-      this.collectionView = new window.collectionView({
-      });
-      this.collectionView.render();
+       if (!this.collectionView) {
+         this.collectionView = new window.collectionView({
+           colId: colid,
+           model: arangoCollection
+         });
+       }
+       else {
+         this.collectionView.options.colId = colid;
+       }
+       this.collectionView.render();
     },
     documents: function(colid) {
       this.documentsView = new window.documentsView();
