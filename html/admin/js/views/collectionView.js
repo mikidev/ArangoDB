@@ -45,8 +45,10 @@ var collectionView = Backbone.View.extend({
     }
   },
   saveNewCollection: function() {
-    console.log(myCollection);
+    console.log("atm missing");
     return false;
+  },
+  saveModifiedCollection: function() {
 
   }
 

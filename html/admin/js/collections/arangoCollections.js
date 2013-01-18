@@ -22,6 +22,7 @@ window.arangoCollections = Backbone.Collection.extend({
             return data;
           },
           error: function(data) {
+            console.log("get properties failed");
           }
         });
         return false;
