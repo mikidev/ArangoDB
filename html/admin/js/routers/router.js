@@ -20,15 +20,23 @@ $(document).ready(function() {
       this.footerView.render();
     },
     collections: function() {
-      this.collectionsView = new window.collectionsView({
-        model: arangoCollection
+      var arangoCollectionsStore = new window.arangoCollections();
+
+      var naviView = this.naviView;
+
+      arangoCollectionsStore.fetch({
+        success: function () {
+          var collectionsView = new window.collectionsView({
+            collection: arangoCollectionsStore
+          });
+          collectionsView.render();
+          naviView.selectMenuItem('collections-menu');
+        }
       });
-      this.collectionsView.render();
-      this.naviView.selectMenuItem('collections-menu');
     },
     collection: function(colid) {
       this.collectionView = new window.collectionView({
-        model: window.arangoCollection});
+      });
       this.collectionView.render();
     },
     documents: function(colid) {
