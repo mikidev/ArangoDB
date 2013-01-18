@@ -20,12 +20,15 @@ $(document).ready(function() {
       this.footerView.render();
     },
     collections: function() {
-      this.collectionsView = new window.collectionsView();
+      this.collectionsView = new window.collectionsView({
+        model: arangoCollection
+      });
       this.collectionsView.render();
       this.naviView.selectMenuItem('collections-menu');
     },
     collection: function(colid) {
-      this.collectionView = new window.collectionView();
+      this.collectionView = new window.collectionView({
+        model: window.arangoCollection});
       this.collectionView.render();
     },
     documents: function(colid) {
