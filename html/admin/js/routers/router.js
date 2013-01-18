@@ -35,6 +35,7 @@ $(document).ready(function() {
       });
     },
     collection: function(colid) {
+      //TODO: if-statement for every view needed!
        if (!this.collectionView) {
          this.collectionView = new window.collectionView({
            colId: colid,
