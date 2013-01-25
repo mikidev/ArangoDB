@@ -15,7 +15,11 @@ var collectionView = Backbone.View.extend({
     return this;
   },
   events: {
-    "click #save-modified-collection"    :    "saveNewCollection"
+    "click #save-modified-collection"    :    "saveNewCollection",
+    "hidden #change-collection"          :    "hidden",
+  },
+  hidden: function () {
+    window.location.hash = "#";
   },
   fillModal: function() {
     myCollection = window.arangoCollectionsStore.get(this.options.colId).attributes;

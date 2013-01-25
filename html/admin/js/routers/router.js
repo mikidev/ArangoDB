@@ -14,13 +14,13 @@ $(document).ready(function() {
       "about"                    : "about"
     },
     initialize: function () {
+      window.arangoCollectionsStore = new window.arangoCollections();
       this.naviView = new window.navigationView();
       this.footerView = new window.footerView();
       this.naviView.render();
       this.footerView.render();
     },
     collections: function() {
-      window.arangoCollectionsStore = new window.arangoCollections();
 
       var naviView = this.naviView;
 
