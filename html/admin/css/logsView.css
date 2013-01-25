@@ -1,0 +1,9 @@
+.dataTables_info {
+  display:none !important;
+}
+
+.logContent {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

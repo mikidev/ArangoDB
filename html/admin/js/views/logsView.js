@@ -9,6 +9,7 @@ var logsView = Backbone.View.extend({
 
   initialize: function () {
     this.totalAmount = this.collection.models[0].attributes.totalAmount;
+    this.totalPages = Math.ceil(this.totalAmount / this.size);
   },
 
   events: {
@@ -23,64 +24,75 @@ var logsView = Backbone.View.extend({
     "click #logTableID_next"  : "nextTable",
   },
   firstTable: function () {
-    this.offset = 0;
-    this.clearTable();
-    this.collection.fillLocalStorage(this.table, this.offset, 10);
-    this.drawTable();
+    if (this.offset == 0) {
+    }
+    else {
+      this.offset = 0;
+      this.page = 1;
+      this.clearTable();
+      this.collection.fillLocalStorage(this.table, this.offset, this.size);
+    }
   },
   lastTable: function () {
-    this.totalPages = Math.ceil(this.totalAmount / 10);
-    this.offset = (this.totalPages * 10) - 10;
-    this.clearTable();
-    this.collection.fillLocalStorage(this.table, this.offset, 10);
-    this.drawTable();
+    if (this.page == this.totalPages) {
+    }
+    else {
+      this.totalPages = Math.ceil(this.totalAmount / this.size);
+      this.page = this.totalPages;
+      this.offset = (this.totalPages * this.size) - this.size;
+      this.clearTable();
+      this.collection.fillLocalStorage(this.table, this.offset, this.size);
+    }
   },
   prevTable: function () {
-    this.offset = this.offset - this.size;
-    this.clearTable();
-    this.collection.fillLocalStorage(this.table, this.offset, 10);
-    this.drawTable();
+    if (this.offset == 0) {
+    }
+    else {
+      this.offset = this.offset - this.size;
+      this.page = this.page - 1;
+      this.clearTable();
+      this.collection.fillLocalStorage(this.table, this.offset, this.size);
+    }
   },
   nextTable: function () {
-    this.offset = this.offset + this.size;
-    this.clearTable();
-    this.collection.fillLocalStorage(this.table, this.offset, 10);
-    this.drawTable();
+    if (this.page == this.totalPages) {
+    }
+    else {
+      this.page = this.page + 1;
+      this.offset = this.offset + this.size;
+      this.clearTable();
+      this.collection.fillLocalStorage(this.table, this.offset, this.size);
+    }
   },
   all: function () {
     this.resetState();
     this.table = "logTableID";
     this.clearTable();
-    this.collection.fillLocalStorage(this.table, this.offset, 10);
-    this.drawTable();
+    this.collection.fillLocalStorage(this.table, this.offset, this.size);
   },
   error: function() {
     this.resetState();
     this.table = "critTableID";
     this.clearTable();
-    this.collection.fillLocalStorage(this.table, this.offset, 10);
-    this.drawTable();
+    this.collection.fillLocalStorage(this.table, this.offset, this.size);
   },
   warning: function() {
     this.resetState();
     this.table = "warnTableID";
     this.clearTable();
-    this.collection.fillLocalStorage(this.table, this.offset, 10);
-    this.drawTable();
+    this.collection.fillLocalStorage(this.table, this.offset, this.size);
   },
   debug: function() {
     this.resetState();
     this.table = "debugTableID";
     this.clearTable();
-    this.collection.fillLocalStorage(this.table, 0, 10);
-    this.drawTable();
+    this.collection.fillLocalStorage(this.table, 0, this.size);
   },
   info: function() {
     this.resetState();
     this.table = "infoTableID";
     this.clearTable();
-    this.collection.fillLocalStorage(this.table, 0, 10);
-    this.drawTable();
+    this.collection.fillLocalStorage(this.table, 0, this.size);
   },
   resetState: function () {
     this.offset = 0;
@@ -100,10 +112,10 @@ var logsView = Backbone.View.extend({
         "bLengthChange": false,
         "bDeferRender": true,
         "bProcessing": true,
-        "bAutoWidth": true,
+        "bAutoWidth": false,
         "iDisplayLength": -1,
         "bJQueryUI": false,
-        "aoColumns": [{ "sClass":"center", "sWidth": "100px", "bSortable":false}, {"bSortable":false}],
+        "aoColumns": [{ "sClass":"center", "sWidth": "100px", "bSortable":false}, {"sWidth": "800px","bSortable":false, "sClass":"logContent"}],
         "oLanguage": {"sEmptyTable": "No logfiles available"}
       });
     });
@@ -115,7 +127,7 @@ var logsView = Backbone.View.extend({
   },
   drawTable: function () {
     var self = this;
-    $.each(this.collection.models, function(key, value) {
+    $.each(window.arangoLogsStore.models, function(key, value) {
       $('#'+self.table).dataTable().fnAddData([value.attributes.level, value.attributes.text]);
     });
   },

@@ -18,9 +18,10 @@ window.arangoLogs = Backbone.Collection.extend({
   tables: ["logTableID", "warnTableID", "infoTableID", "debugTableID", "critTableID"],
   model: arangoLog,
   clearLocalStorage: function () {
-    window.arangoLogsStore.models = {};
+    window.arangoLogsStore.reset();
   },
   fillLocalStorage: function (table, offset, size) {
+    var self = this;
     this.clearLocalStorage();
     if (!table) {
       table = 'logTableID';
@@ -40,12 +41,11 @@ window.arangoLogs = Backbone.Collection.extend({
     else {
       url = "/_admin/log?level="+loglevel+"&size="+size+"$offset="+offset;
     }
-    $.getJSON(url, function(data) {
-      var totalAmount = data.totalAmount;
-      var myResponse = [];
+    $.getJSON(url, function(response) {
+      var totalAmount = response.totalAmount;
       var i=0;
       $.each(response.lid, function () {
-        myResponse.push({
+        window.arangoLogsStore.add({
           "level":response.level[i],
           "lid":response.lid[i],
           "text":response.text[i],
@@ -54,6 +54,7 @@ window.arangoLogs = Backbone.Collection.extend({
         });
         i++;
       });
+      window.logsView.drawTable();
     });
   },
   showLogLevel: function (tableid) {
