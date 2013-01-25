@@ -97,6 +97,7 @@ var logsView = Backbone.View.extend({
   resetState: function () {
     this.offset = 0;
     this.size = 10;
+    this.page = 1;
   },
 
   tabs: function () {

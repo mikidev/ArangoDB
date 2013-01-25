@@ -17,6 +17,20 @@ $(document).ready(function() {
     initialize: function () {
       window.arangoCollectionsStore = new window.arangoCollections();
       window.arangoLogsStore = new window.arangoLogs();
+      window.arangoLogsStore.fetch({
+        success: function () {
+          if (!window.logsView) {
+            console.log("not exits");
+          }
+          window.logsView = new window.logsView({
+            collection: window.arangoLogsStore
+          });
+          window.logsView.render();
+          $('#logNav a[href="#all"]').tab('show');
+          window.logsView.initLogTables();
+          window.logsView.drawTable();
+        }
+      });
       this.naviView = new window.navigationView();
       this.footerView = new window.footerView();
       this.naviView.render();
@@ -38,16 +52,16 @@ $(document).ready(function() {
     },
     collection: function(colid) {
       //TODO: if-statement for every view needed!
-       if (!this.collectionView) {
-         this.collectionView = new window.collectionView({
-           colId: colid,
-           model: arangoCollection
-         });
-       }
-       else {
-         this.collectionView.options.colId = colid;
-       }
-       this.collectionView.render();
+      if (!this.collectionView) {
+        this.collectionView = new window.collectionView({
+          colId: colid,
+          model: arangoCollection
+        });
+      }
+      else {
+        this.collectionView.options.colId = colid;
+      }
+      this.collectionView.render();
     },
     documents: function(colid) {
       this.documentsView = new window.documentsView();
@@ -72,21 +86,17 @@ $(document).ready(function() {
       this.aboutView.render();
       this.naviView.selectMenuItem('about-menu');
     },
-    logs: function(loglevel) {
-      if (typeof loglevel == 'undefined') {
-        loglevel = "all";
-      }
+    logs: function() {
       var self = this;
-      var temp = window.arangoLogsStore;
       window.arangoLogsStore.fetch({
         success: function () {
-          this.logsView = new window.logsView({
-            collection: temp
-          });
-          this.logsView.render();
-          $('#logNav a[href="#'+loglevel+'"]').tab('show');
-          this.logsView.initLogTables();
-          this.logsView.drawTable("123");
+          if (!window.logsView) {
+            console.log("not exits");
+          }
+          window.logsView.render();
+          $('#logNav a[href="#all"]').tab('show');
+          window.logsView.initLogTables();
+          window.logsView.drawTable();
         }
       });
       this.naviView.selectMenuItem('logs-menu');
