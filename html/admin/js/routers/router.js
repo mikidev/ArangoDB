@@ -3,15 +3,15 @@ $(document).ready(function() {
   window.Router = Backbone.Router.extend({
 
     routes: {
-      ""                         : "collections",
-      "collection/:colid"        : "collection",
-      "collection/:colid/all"    : "documents",
-      "collection/:colid/:docid" : "document",
-      "shell"                    : "shell",
-      "dashboard"                : "dashboard",
-      "query"                    : "query",
-      "logs"                     : "logs",
-      "about"                    : "about"
+      ""                                    : "collections",
+      "collection/:colid"                   : "collection",
+      "collection/:colid/documents/:pageid" : "documents",
+      "collection/:colid/:docid"            : "document",
+      "shell"                               : "shell",
+      "dashboard"                           : "dashboard",
+      "query"                               : "query",
+      "logs"                                : "logs",
+      "about"                               : "about"
     },
     initialize: function () {
       window.arangoCollectionsStore = new window.arangoCollections();
@@ -48,6 +48,7 @@ $(document).ready(function() {
        this.collectionView.render();
     },
     documents: function(colid) {
+      console.log("documents");
       this.documentsView = new window.documentsView();
       this.documentsView.render();
     },
