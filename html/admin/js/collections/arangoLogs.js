@@ -42,10 +42,16 @@ window.arangoLogs = Backbone.Collection.extend({
     }
     $.getJSON(url, function(data) {
       var totalAmount = data.totalAmount;
-      var items=[];
+      var myResponse = [];
       var i=0;
-      $.each(data.lid, function () {
-        $('#'+table).dataTable().fnAddData([data.level[i], data.text[i]]);
+      $.each(response.lid, function () {
+        myResponse.push({
+          "level":response.level[i],
+          "lid":response.lid[i],
+          "text":response.text[i],
+          "timestamp":response.timestamp[i],
+          "totalAmount":response.totalAmount
+        });
         i++;
       });
     });
