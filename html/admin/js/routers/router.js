@@ -5,6 +5,7 @@ $(document).ready(function() {
     routes: {
       ""                                    : "collections",
       "collection/:colid"                   : "collection",
+      "collection/new"                      : "newCollection",
       "collection/:colid/documents/:pageid" : "documents",
       "collection/:colid/:docid"            : "document",
       "shell"                               : "shell",
@@ -15,6 +16,7 @@ $(document).ready(function() {
     },
     initialize: function () {
       window.arangoCollectionsStore = new window.arangoCollections();
+      window.arangoLogsStore = new window.arangoLogs();
       this.naviView = new window.navigationView();
       this.footerView = new window.footerView();
       this.naviView.render();
@@ -48,7 +50,6 @@ $(document).ready(function() {
        this.collectionView.render();
     },
     documents: function(colid) {
-      console.log("documents");
       this.documentsView = new window.documentsView();
       this.documentsView.render();
     },
@@ -71,9 +72,23 @@ $(document).ready(function() {
       this.aboutView.render();
       this.naviView.selectMenuItem('about-menu');
     },
-    logs: function() {
-      this.logsView = new window.logsView();
-      this.logsView.render();
+    logs: function(loglevel) {
+      if (typeof loglevel == 'undefined') {
+        loglevel = "all";
+      }
+      var self = this;
+      var temp = window.arangoLogsStore;
+      window.arangoLogsStore.fetch({
+        success: function () {
+          this.logsView = new window.logsView({
+            collection: temp
+          });
+          this.logsView.render();
+          $('#logNav a[href="#'+loglevel+'"]').tab('show');
+          this.logsView.initLogTables();
+          this.logsView.drawTable("123");
+        }
+      });
       this.naviView.selectMenuItem('logs-menu');
     },
     dashboard: function() {
