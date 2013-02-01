@@ -79,6 +79,7 @@ $(document).ready(function() {
     document: function(colid, docid) {
       this.documentView = new window.documentView();
       this.documentView.render();
+      console.log(colid + "/" + docid);
     },
     shell: function() {
       this.shellView = new window.shellView();

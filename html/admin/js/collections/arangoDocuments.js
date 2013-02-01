@@ -56,16 +56,12 @@ window.arangoDocuments = Backbone.Collection.extend({
                   "zipcode": v.zipcode,
                   "content": v
                 });
-                //$('#documentsTableID').dataTable().fnAddData(['<button class="enabled" id="deleteDoc"><img src="/_admin/html/media/icons/doc_delete_icon16.png" width="16" height="16"></button><button class="enabled" id="editDoc"><img src="/_admin/html/media/icons/doc_edit_icon16.png" width="16" height="16"></button>', v._id, v._key, v._rev, '<pre class=prettify>' + cutByResolution(JSON.stringify(v)) + '</pre>' ]);
               });
+              window.documentsView.drawTable();
             }
             else {
-              console.log("no data");
+              window.documentsView.initTable();
             }
-            window.documentsView.drawTable();
-
-            //$(".prettify").snippet("javascript", {style: "nedit", menu: false, startText: false, transparent: true, showNum: false});
-            //$('#documents_status').text(String(documentCount) + " document(s), showing page " + currentPage + " of " + totalPages);
           },
           error: function(data) {
           }
