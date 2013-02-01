@@ -10,7 +10,7 @@ window.arangoDocuments = Backbone.Collection.extend({
       model: arangoDocument,
 
       getDocuments: function (colid, currpage) {
-
+        var self = this;
         this.collectionID = colid;
         this.currentPage = currpage;
 
@@ -21,8 +21,8 @@ window.arangoDocuments = Backbone.Collection.extend({
           processData: false,
           async: false,
           success: function(data) {
-            this.totalPages = Math.ceil(data.count / this.documentsPerPage);
-            this.documentsCount = data.count;
+            self.totalPages = Math.ceil(data.count / this.documentsPerPage);
+            self.documentsCount = data.count;
           },
           error: function(data) {
           }
@@ -39,34 +39,37 @@ window.arangoDocuments = Backbone.Collection.extend({
 
         this.offset = (this.currentPage - 1) * this.documentsPerPage;
 
-        var self = this;
-
         $.ajax({
           type: 'PUT',
+          async: false,
           url: '/_api/simple/all/',
           data: '{"collection":"' + this.collectionID + '","skip":' + this.offset + ',"limit":' + String(this.documentsPerPage) + '}',
           contentType: "application/json",
           success: function(data) {
             self.clearDocuments();
-            $.each(data.result, function(k, v) {
-              window.arangoDocumentsStore.add({
-                "id": v._id,
-                "rev": v._rev,
-                "key": v._key,
-                "zipcode": v.zipcode,
-                "content": v
+            if (self.documentsCount != 0) {
+              $.each(data.result, function(k, v) {
+                window.arangoDocumentsStore.add({
+                  "id": v._id,
+                  "rev": v._rev,
+                  "key": v._key,
+                  "zipcode": v.zipcode,
+                  "content": v
+                });
+                //$('#documentsTableID').dataTable().fnAddData(['<button class="enabled" id="deleteDoc"><img src="/_admin/html/media/icons/doc_delete_icon16.png" width="16" height="16"></button><button class="enabled" id="editDoc"><img src="/_admin/html/media/icons/doc_edit_icon16.png" width="16" height="16"></button>', v._id, v._key, v._rev, '<pre class=prettify>' + cutByResolution(JSON.stringify(v)) + '</pre>' ]);
               });
-              //$('#documentsTableID').dataTable().fnAddData(['<button class="enabled" id="deleteDoc"><img src="/_admin/html/media/icons/doc_delete_icon16.png" width="16" height="16"></button><button class="enabled" id="editDoc"><img src="/_admin/html/media/icons/doc_edit_icon16.png" width="16" height="16"></button>', v._id, v._key, v._rev, '<pre class=prettify>' + cutByResolution(JSON.stringify(v)) + '</pre>' ]);
-            });
+            }
+            else {
+              console.log("no data");
+            }
+            window.documentsView.drawTable();
+
             //$(".prettify").snippet("javascript", {style: "nedit", menu: false, startText: false, transparent: true, showNum: false});
             //$('#documents_status').text(String(documentCount) + " document(s), showing page " + currentPage + " of " + totalPages);
-            window.documentsView.drawTable();
           },
           error: function(data) {
-
           }
         });
-
       },
       clearDocuments: function () {
         window.arangoDocumentsStore.reset();

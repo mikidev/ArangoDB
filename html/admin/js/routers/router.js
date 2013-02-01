@@ -16,7 +16,6 @@ $(document).ready(function() {
     },
     initialize: function () {
       window.arangoCollectionsStore = new window.arangoCollections();
-
       window.arangoDocumentsStore = new window.arangoDocuments();
       window.documentsView = new window.documentsView({
         collection: window.arangoDocuments,
@@ -49,7 +48,7 @@ $(document).ready(function() {
       window.arangoCollectionsStore.fetch({
         success: function () {
           var collectionsView = new window.collectionsView({
-            model: window.arangoCollectionsStore
+            collection: window.arangoCollectionsStore
           });
           collectionsView.render();
           naviView.selectMenuItem('collections-menu');
@@ -71,11 +70,11 @@ $(document).ready(function() {
     },
     documents: function(colid, pageid) {
 
+      window.documentsView.render();
       window.arangoDocumentsStore.getDocuments(colid, pageid);
       if (!window.documentsView) {
         window.documentsView.initTable(colid, pageid);
       }
-      window.documentsView.render();
     },
     document: function(colid, docid) {
       this.documentView = new window.documentView();

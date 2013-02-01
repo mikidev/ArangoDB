@@ -27,7 +27,9 @@ var documentsView = Backbone.View.extend({
         "oLanguage": { "sEmptyTable": "No documents"}
     });
   },
-
+  clearTable: function() {
+    $(this.table).dataTable().fnClearTable();
+  },
   drawTable: function() {
     var self = this;
     $.each(window.arangoDocumentsStore.models, function(key, value) {
