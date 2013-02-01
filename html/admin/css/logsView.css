@@ -7,3 +7,23 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+#logNav {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+#logToolbar {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.tab-content {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.odd {
+  
+}
+
+.even {
+  
+}

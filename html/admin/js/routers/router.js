@@ -5,7 +5,7 @@ $(document).ready(function() {
     routes: {
       ""                                    : "collections",
       "collection/:colid"                   : "collection",
-      "collection/new"                      : "newCollection",
+      "new"                                 : "newCollection",
       "collection/:colid/documents/:pageid" : "documents",
       "collection/:colid/:docid"            : "document",
       "shell"                               : "shell",
@@ -16,6 +16,12 @@ $(document).ready(function() {
     },
     initialize: function () {
       window.arangoCollectionsStore = new window.arangoCollections();
+
+      window.arangoDocumentsStore = new window.arangoDocuments();
+      window.documentsView = new window.documentsView({
+        collection: window.arangoDocuments,
+      });
+
       window.arangoLogsStore = new window.arangoLogs();
       window.arangoLogsStore.fetch({
         success: function () {
@@ -25,10 +31,10 @@ $(document).ready(function() {
           window.logsView = new window.logsView({
             collection: window.arangoLogsStore
           });
-          window.logsView.render();
-          $('#logNav a[href="#all"]').tab('show');
-          window.logsView.initLogTables();
-          window.logsView.drawTable();
+          //window.logsView.render();
+          //$('#logNav a[href="#all"]').tab('show');
+          //window.logsView.initLogTables();
+          //window.logsView.drawTable();
         }
       });
       this.naviView = new window.navigationView();
@@ -43,7 +49,7 @@ $(document).ready(function() {
       window.arangoCollectionsStore.fetch({
         success: function () {
           var collectionsView = new window.collectionsView({
-            collection: window.arangoCollectionsStore
+            model: window.arangoCollectionsStore
           });
           collectionsView.render();
           naviView.selectMenuItem('collections-menu');
@@ -51,7 +57,7 @@ $(document).ready(function() {
       });
     },
     collection: function(colid) {
-      //TODO: if-statement for every view needed!
+      //TODO: if-statement for every view !
       if (!this.collectionView) {
         this.collectionView = new window.collectionView({
           colId: colid,
@@ -63,9 +69,13 @@ $(document).ready(function() {
       }
       this.collectionView.render();
     },
-    documents: function(colid) {
-      this.documentsView = new window.documentsView();
-      this.documentsView.render();
+    documents: function(colid, pageid) {
+
+      window.arangoDocumentsStore.getDocuments(colid, pageid);
+      if (!window.documentsView) {
+        window.documentsView.initTable(colid, pageid);
+      }
+      window.documentsView.render();
     },
     document: function(colid, docid) {
       this.documentView = new window.documentView();
