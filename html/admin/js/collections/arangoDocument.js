@@ -2,7 +2,8 @@ window.arangoDocument = Backbone.Collection.extend({
   url: '/_api/document/',
   model: arangoDocument,
 
-  getDocument: function (colid, docid) {
+  getDocument: function (colid, docid, view) {
+
     this.clearDocument();
     var self = this;
     $.ajax({
@@ -12,8 +13,14 @@ window.arangoDocument = Backbone.Collection.extend({
       processData: false,
       success: function(data) {
         window.arangoDocumentStore.add(data);
-        window.documentView.initTable();
-        window.documentView.drawTable();
+
+        if (view == "source") {
+
+        }
+        else {
+          window.documentView.initTable();
+          window.documentView.drawTable();
+        }
       },
       error: function(data) {
       }

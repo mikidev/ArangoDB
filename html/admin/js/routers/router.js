@@ -8,6 +8,7 @@ $(document).ready(function() {
       "new"                                 : "newCollection",
       "collection/:colid/documents/:pageid" : "documents",
       "collection/:colid/:docid"            : "document",
+      "collection/:colid/:docid/source"     : "source",
       "shell"                               : "shell",
       "dashboard"                           : "dashboard",
       "query"                               : "query",
@@ -24,6 +25,9 @@ $(document).ready(function() {
         collection: window.arangoDocuments,
       });
       window.documentView = new window.documentView({
+        collection: window.arangoDocument,
+      });
+      window.documentSourceView = new window.documentSourceView({
         collection: window.arangoDocument,
       });
 
@@ -82,6 +86,13 @@ $(document).ready(function() {
       window.arangoDocumentStore.getDocument(colid, docid);
       if (!window.documentView) {
         window.documentView.initTable();
+      }
+    },
+    source: function(colid, docid) {
+      window.documentSourceView.render();
+      window.arangoDocumentStore.getDocument(colid, docid, "source");
+      if (!window.documentSourceView) {
+        window.documentSourceView.initTable();
       }
     },
     shell: function() {

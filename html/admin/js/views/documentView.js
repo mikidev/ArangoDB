@@ -9,7 +9,8 @@ var documentView = Backbone.View.extend({
   events: {
     "click #saveDocument"    : "saveDocument",
     "click #addDocumentLine" : "addLine",
-    "click #deleteRow"       : "deleteLine"
+    "click #deleteRow"       : "deleteLine",
+    "click #sourceView"      : "sourceView"
   },
 
   template: new EJS({url: '/_admin/html/js/templates/documentView.ejs'}),
@@ -17,6 +18,9 @@ var documentView = Backbone.View.extend({
   render: function() {
     $(this.el).html(this.template.text);
     return this;
+  },
+  sourceView: function () {
+    window.location.hash = window.location.hash + "/source";
   },
   saveDocument: function () {
     window.arangoDocumentStore.saveDocument();
@@ -38,6 +42,7 @@ var documentView = Backbone.View.extend({
   addLine: function () {
     $(this.table).dataTable().fnAddData(['<button class="enabled" id="deleteRow"><img src="/_admin/html/media/icons/delete_icon16.png" width="16" height="16"></button>', "somekey"+this.counter, this.value2html("editme"), JSON.stringify("editme")]);
     this.makeEditable();
+    this.updateLocalDocumentStorage();
     this.counter++;
   },
 
