@@ -5,7 +5,7 @@ var shellView = Backbone.View.extend({
     this.autocomplete();
   },
   events: {
-    'click #reloadShellButton': 'reloadShell',
+    'click .reloadicon'       : 'reloadShell',
     'click #submitShellButton': 'submitShell',
     'submit form'             : 'submitShell',
     'click #clearShellButton' : 'clearShell',
@@ -75,7 +75,11 @@ var shellView = Backbone.View.extend({
     $('#shellContent').html("");
   },
   reloadShell: function () {
-    location.reload();
+    db._collections();
+    $('#shellContent').html("");
+    this.drawWelcomeMsg();
+    $('#shellContent').append("<p> --- Reloaded ---</p>");
+
   },
   drawWelcomeMsg: function () {
     if ($('#shellContent').text().length == 0 ) {

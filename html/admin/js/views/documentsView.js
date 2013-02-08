@@ -47,6 +47,9 @@ var documentsView = Backbone.View.extend({
           var hash = window.location.hash.split("/");
           var page = hash[3];
           var collection = hash[1];
+
+          //TODO: more elegant solution...
+          $('#documentsTableID').dataTable().fnClearTable();
           window.arangoDocumentsStore.getDocuments(collection, page);
         }
       });
@@ -95,7 +98,7 @@ var documentsView = Backbone.View.extend({
     var self = this;
     $.each(window.arangoDocumentsStore.models, function(key, value) {
       $(self.table).dataTable().fnAddData([
-                                          '<button class="enabled" id="deleteDoc"><img src="/_admin/html/img/doc_delete_icon16.png" width="16" height="16"></button><button class="enabled" id="editDoc"><img src="/_admin/html/img/doc_edit_icon16.png" width="16" height="16"></button>',
+                                          '<button class="enabled" id="deleteDoc"><img src="/_admin/html/img/doc_delete_icon16.png" width="16" height="16"></button>',
                                           value.attributes.id,
                                           value.attributes.key,
                                           value.attributes.rev,

@@ -3,7 +3,7 @@ window.arangoDocument = Backbone.Model.extend({
   },
   urlRoot: "/_api/document",
   defaults: {
-    id: "",
+    _id: "",
     _rev: "",
   }
 });

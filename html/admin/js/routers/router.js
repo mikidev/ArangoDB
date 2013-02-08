@@ -16,24 +16,26 @@ $(document).ready(function() {
     },
     initialize: function () {
       window.arangoCollectionsStore = new window.arangoCollections();
+
       window.arangoDocumentsStore = new window.arangoDocuments();
+      window.arangoDocumentStore = new window.arangoDocument();
+
       window.documentsView = new window.documentsView({
         collection: window.arangoDocuments,
+      });
+      window.documentView = new window.documentView({
+        collection: window.arangoDocument,
       });
 
       window.arangoLogsStore = new window.arangoLogs();
       window.arangoLogsStore.fetch({
         success: function () {
           if (!window.logsView) {
-            console.log("not exits");
+            console.log("not existing");
           }
           window.logsView = new window.logsView({
             collection: window.arangoLogsStore
           });
-          //window.logsView.render();
-          //$('#logNav a[href="#all"]').tab('show');
-          //window.logsView.initLogTables();
-          //window.logsView.drawTable();
         }
       });
       this.naviView = new window.navigationView();
@@ -70,15 +72,17 @@ $(document).ready(function() {
     },
     documents: function(colid, pageid) {
       window.documentsView.render();
-      window.arangoDocumentsStore.getDocuments(colid, pageid);
+      window.arangoDocumentStore.getDocuments(colid, pageid);
       if (!window.documentsView) {
         window.documentsView.initTable(colid, pageid);
       }
     },
     document: function(colid, docid) {
-      this.documentView = new window.documentView();
-      this.documentView.render();
-      console.log(colid + "/" + docid);
+      window.documentView.render();
+      window.arangoDocumentStore.getDocument(colid, docid);
+      if (!window.documentView) {
+        window.documentView.initTable();
+      }
     },
     shell: function() {
       this.shellView = new window.shellView();
