@@ -1,4 +1,7 @@
 #documentsTableID .odd:hover {
   border: 1px solid red;
+}
 
+#documentsTableID_paginate {
+  visibility: hidden;
 }

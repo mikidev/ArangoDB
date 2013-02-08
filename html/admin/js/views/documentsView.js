@@ -30,19 +30,24 @@ var documentsView = Backbone.View.extend({
     window.arangoDocumentsStore.getNextDocuments();
   },
   remove: function (a) {
+    target = a.currentTarget;
+    var thiselement = a.currentTarget.parentElement;
+    var idelement = $(thiselement).next().text();
     this.alreadyClicked = true;
-    var self = a.currentTarget;
-    var aPos = $(this.table).dataTable().fnGetPosition(self.parentElement);
-    var rowContent = $(this.table).dataTable().fnGetData(aPos[1]);
+
     //TODO: ALERT
     try {
       $.ajax({
         type: 'DELETE',
         contentType: "application/json",
-        url: "/_api/document/" + rowContent[1],
+        url: "/_api/document/" + idelement,
         success: function () {
-          var row = $(self).closest("tr").get(0);
+          var row = $(target).closest("tr").get(0);
           $('#documentsTableID').dataTable().fnDeleteRow($('#documentsTableID').dataTable().fnGetPosition(row));
+          var hash = window.location.hash.split("/");
+          var page = hash[3];
+          var collection = hash[1];
+          window.arangoDocumentsStore.getDocuments(collection, page);
         }
       });
     }
