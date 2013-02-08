@@ -72,7 +72,7 @@ $(document).ready(function() {
     },
     documents: function(colid, pageid) {
       window.documentsView.render();
-      window.arangoDocumentStore.getDocuments(colid, pageid);
+      window.arangoDocumentsStore.getDocuments(colid, pageid);
       if (!window.documentsView) {
         window.documentsView.initTable(colid, pageid);
       }

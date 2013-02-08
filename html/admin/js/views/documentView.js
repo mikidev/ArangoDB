@@ -1,9 +1,14 @@
 var documentView = Backbone.View.extend({
   el: '#content',
   table: '#documentTableID',
-
+  counter: 1,
   init: function () {
     this.initTable();
+  },
+
+  events: {
+    "click #saveDocument"    : "saveDocument",
+    "click #addDocumentLine" : "addLine"
   },
 
   template: new EJS({url: '/_admin/html/js/templates/documentView.ejs'}),
@@ -12,6 +17,10 @@ var documentView = Backbone.View.extend({
     $(this.el).html(this.template.text);
     return this;
   },
+  saveDocument: function () {
+    window.arangoDocumentStore.saveDocument();
+  },
+
   drawTable: function () {
     var self = this;
     $.each(window.arangoDocumentStore.models[0].attributes, function(key, value) {
@@ -19,11 +28,16 @@ var documentView = Backbone.View.extend({
         $(self.table).dataTable().fnAddData(["", key, self.value2html(value, true), JSON.stringify(value)]);
       }
       else {
-        $(self.table).dataTable().fnAddData([
-          '<button class="enabled" id="deleteEditedDocButton"><img src="/_admin/html/media/icons/delete_icon16.png" width="16" height="16"></button>',key, self.value2html(value), JSON.stringify(value)
-        ])
+        $(self.table).dataTable().fnAddData(['<button class="enabled" id="deleteEditedDocButton"><img src="/_admin/html/media/icons/delete_icon16.png" width="16" height="16"></button>',key, self.value2html(value), JSON.stringify(value)]);
       }
     });
+    this.makeEditable();
+  },
+
+  addLine: function () {
+    $(this.table).dataTable().fnAddData(['<button class="enabled" id="deleteEditedDocButton"><img src="/_admin/html/media/icons/delete_icon16.png" width="16" height="16"></button>', "somekey"+this.counter, this.value2html("editme"), JSON.stringify("editme")]);
+    this.makeEditable();
+    this.counter++;
   },
 
   initTable: function () {
@@ -97,6 +111,17 @@ var documentView = Backbone.View.extend({
       return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#38;");
   },
 
+  updateLocalDocumentStorage: function () {
+    var data = $(this.table).dataTable().fnGetData();
+    var result = {};
+
+    for (row in data) {
+      var row_data = data[row];
+      result[row_data[1]] = JSON.parse(row_data[3]);
+    }
+    window.arangoDocumentStore.updateLocalDocument(result);
+  },
+
   makeEditable: function () {
     var documentEditTable = $(this.table).dataTable();
     var self=this;
@@ -115,21 +140,22 @@ var documentView = Backbone.View.extend({
       var aPos = documentEditTable.fnGetPosition(this);
       if (aPos[1] == 1) {
         documentEditTable.fnUpdate(value, aPos[0], aPos[1]);
+        self.updateLocalDocumentStorage();
         return value;
       }
       if (aPos[1] == 2) {
         var oldContent = JSON.parse(documentEditTable.fnGetData(aPos[0], aPos[1] + 1));
-        var test = getTypedValue(value);
+        var test = self.getTypedValue(value);
         if (String(value) == String(oldContent)) {
           // no change
           return value2html(oldContent);
         }
         else {
           // change update hidden row
-          //MARKER
           documentEditTable.fnUpdate(JSON.stringify(test), aPos[0], aPos[1] + 1);
+          self.updateLocalDocumentStorage();
           // return visible row
-          return value2html(test);
+          return self.value2html(test);
         }
       }
     },{
@@ -161,6 +187,54 @@ var documentView = Backbone.View.extend({
       //style: 'display: inline',
       autogrow: {lineHeight: 16, minHeight: 30}
     });
+  },
+  getTypedValue: function (value) {
+    value = value.replace(/(^\s+|\s+$)/g, '');
+    if (value == 'true') {
+      return true;
+    }
+    if (value == 'false') {
+      return false;
+    }
+    if (value == 'null') {
+      return null;
+    }
+    if (value.match(/^-?((\d+)?\.)?\d+$/)) {
+      // TODO: support exp notation
+      return parseFloat(value);
+    }
+
+    try {
+      // assume list or object
+      var test = JSON.parse(value);
+      if (test instanceof Array) {
+        // value is an array
+        return test;
+      }
+      if (typeof(test) == 'object') {
+        // value is an object 
+        return test;
+      }
+    }
+    catch (err) {
+    }
+
+    // fallback: value is a string
+    value = value + '';
+
+    if (value !== '' && (value.substr(0, 1) != '"' || value.substr(-1) != '"')) {
+      alert("You have entered an invalid string value. Please review and adjust it.");
+      throw "error";
+    }
+
+    try {
+      value = JSON.parse(value);
+    }
+    catch (e) {
+      alert("You have entered an invalid string value. Please review and adjust it.");
+      throw e;
+    }
+    return value;
   }
 
 
