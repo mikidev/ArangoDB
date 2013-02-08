@@ -69,7 +69,6 @@ $(document).ready(function() {
       this.collectionView.render();
     },
     documents: function(colid, pageid) {
-
       window.documentsView.render();
       window.arangoDocumentsStore.getDocuments(colid, pageid);
       if (!window.documentsView) {

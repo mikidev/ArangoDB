@@ -1,3 +1,7 @@
+.tab-content {
+  min-height: 310px;
+}
+
 .dataTables_info {
   display:none !important;
 }

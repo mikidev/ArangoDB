@@ -8,7 +8,34 @@ window.arangoDocuments = Backbone.Collection.extend({
 
       url: '/_api/documents',
       model: arangoDocument,
-
+      getFirstDocuments: function () {
+        if (this.currentPage != 1) {
+          var link = window.location.hash.split("/");
+          window.location.hash = link[0]+"/"+link[1]+"/"+link[2]+"/1";
+        }
+      },
+      getLastDocuments: function () {
+        if (this.currentPage != this.totalPages) {
+          var link = window.location.hash.split("/");
+          window.location.hash = link[0]+"/"+link[1]+"/"+link[2]+"/"+this.totalPages;
+        }
+      },
+      getPrevDocuments: function () {
+        if (this.currentPage != 1) {
+          var link = window.location.hash.split("/");
+          var page = parseInt(this.currentPage) - 1;
+          window.location.hash = link[0]+"/"+link[1]+"/"+link[2]+"/"+page;
+        }
+      },
+      getNextDocuments: function () {
+        if (this.currentPage != this.totalPages) {
+          var link = window.location.hash.split("/");
+          var page = parseInt(this.currentPage) + 1;
+          console.log(page);
+          console.log(link);
+          window.location.hash = link[0]+"/"+link[1]+"/"+link[2]+"/"+page;
+        }
+      },
       getDocuments: function (colid, currpage) {
         var self = this;
         this.collectionID = colid;
@@ -21,7 +48,7 @@ window.arangoDocuments = Backbone.Collection.extend({
           processData: false,
           async: false,
           success: function(data) {
-            self.totalPages = Math.ceil(data.count / this.documentsPerPage);
+            self.totalPages = Math.ceil(data.count / self.documentsPerPage);
             self.documentsCount = data.count;
           },
           error: function(data) {

@@ -11,7 +11,23 @@ var documentsView = Backbone.View.extend({
 
   events: {
     "click #documentsTableID tr" : "clicked",
-    "click #deleteDoc" : "remove"
+    "click #deleteDoc"           : "remove",
+    "click #documents_first"     : "firstDocuments",
+    "click #documents_last"      : "lastDocuments",
+    "click #documents_prev"      : "prevDocuments",
+    "click #documents_next"      : "nextDocuments"
+  },
+  firstDocuments: function () {
+    window.arangoDocumentsStore.getFirstDocuments();
+  },
+  lastDocuments: function () {
+    window.arangoDocumentsStore.getLastDocuments();
+  },
+  prevDocuments: function () {
+    window.arangoDocumentsStore.getPrevDocuments();
+  },
+  nextDocuments: function () {
+    window.arangoDocumentsStore.getNextDocuments();
   },
   remove: function (a) {
     this.alreadyClicked = true;
