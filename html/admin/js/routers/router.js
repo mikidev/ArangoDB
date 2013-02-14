@@ -90,7 +90,12 @@ $(document).ready(function() {
     },
     source: function(colid, docid) {
       window.documentSourceView.render();
-      window.arangoDocumentStore.getDocument(colid, docid, "source");
+      if (window.arangoDocumentStore.models[0] == undefined) {
+        window.arangoDocumentStore.getDocument(colid, docid, "source");
+      }
+      else {
+        window.documentSourceView.fillSourceBox();
+      }
       if (!window.documentSourceView) {
         window.documentSourceView.initTable();
       }

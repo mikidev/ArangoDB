@@ -15,7 +15,7 @@ window.arangoDocument = Backbone.Collection.extend({
         window.arangoDocumentStore.add(data);
 
         if (view == "source") {
-
+          window.documentSourceView.fillSourceBox();
         }
         else {
           window.documentView.initTable();
@@ -27,11 +27,15 @@ window.arangoDocument = Backbone.Collection.extend({
     });
   },
 
-  saveDocument: function () {
+  saveDocument: function (view) {
 
-    var model = this.models[0].attributes;
+    if (view == "source") {
+      var model = $('#documentSourceBox').val();
+    }
+    else {
+      var model = this.models[0].attributes;
+    }
     var docID = this.models[0].attributes._id;
-    var hash = window.location.hash.split("/");
 
     $.ajax({
       type: "PUT",
