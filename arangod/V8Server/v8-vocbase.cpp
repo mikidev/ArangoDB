@@ -1394,6 +1394,10 @@ static v8::Handle<v8::Value> CreateVocBase (v8::Arguments const& argv, TRI_col_t
     if (p->Has(isSystemKey)) {
       parameter._isSystem = TRI_ObjectToBoolean(p->Get(isSystemKey));
     }
+    
+    if (p->Has(v8g->IsTransactionalKey)) {
+      parameter._isTransactional = TRI_ObjectToBoolean(p->Get(v8g->IsTransactionalKey));
+    }
 
     if (p->Has(v8g->IsVolatileKey)) {
 #ifdef TRI_HAVE_ANONYMOUS_MMAP
@@ -4730,6 +4734,13 @@ static v8::Handle<v8::Value> JS_PropertiesVocbaseCol (v8::Arguments const& argv)
         }
       }
       
+      if (po->Has(v8g->IsTransactionalKey)) {
+        if (TRI_ObjectToBoolean(po->Get(v8g->IsTransactionalKey)) != base->_info._isTransactional) {
+          ReleaseCollection(collection);
+          return scope.Close(v8::ThrowException(TRI_CreateErrorObject(TRI_ERROR_BAD_PARAMETER, "isTransactional option cannot be changed at runtime")));
+        }
+      }
+      
       if (po->Has(v8g->IsVolatileKey)) {
         if (TRI_ObjectToBoolean(po->Get(v8g->IsVolatileKey)) != base->_info._isVolatile) {
           ReleaseCollection(collection);
@@ -4770,6 +4781,7 @@ static v8::Handle<v8::Value> JS_PropertiesVocbaseCol (v8::Arguments const& argv)
 
     result->Set(v8g->WaitForSyncKey, waitForSync ? v8::True() : v8::False());
     result->Set(v8g->JournalSizeKey, v8::Number::New(maximalSize));
+    result->Set(v8g->IsTransactionalKey, base->_info._isTransactional ? v8::True() : v8::False());
     result->Set(v8g->IsVolatileKey, base->_info._isVolatile ? v8::True() : v8::False());
     result->Set(TRI_V8_SYMBOL("isSystem"), base->_info._isSystem ? v8::True() : v8::False());
 
@@ -6477,10 +6489,11 @@ TRI_v8_global_t* TRI_InitV8VocBridge (v8::Handle<v8::Context> context,
   // keys
   // .............................................................................
 
-  v8g->IsVolatileKey     = v8::Persistent<v8::String>::New(v8::String::New("isVolatile"));
-  v8g->JournalSizeKey    = v8::Persistent<v8::String>::New(v8::String::New("journalSize"));
-  v8g->WaitForSyncKey    = v8::Persistent<v8::String>::New(v8::String::New("waitForSync"));
-  v8g->CreateOptionsKey  = v8::Persistent<v8::String>::New(v8::String::New("createOptions"));
+  v8g->IsTransactionalKey = v8::Persistent<v8::String>::New(v8::String::New("isTransactional"));
+  v8g->IsVolatileKey      = v8::Persistent<v8::String>::New(v8::String::New("isVolatile"));
+  v8g->JournalSizeKey     = v8::Persistent<v8::String>::New(v8::String::New("journalSize"));
+  v8g->WaitForSyncKey     = v8::Persistent<v8::String>::New(v8::String::New("waitForSync"));
+  v8g->CreateOptionsKey   = v8::Persistent<v8::String>::New(v8::String::New("createOptions"));
   
   if (v8g->DidKey.IsEmpty()) {
     v8g->DidKey = v8::Persistent<v8::String>::New(TRI_V8_SYMBOL("_id"));
