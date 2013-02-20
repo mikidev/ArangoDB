@@ -489,7 +489,7 @@ static int WriteShutdownInfo (TRI_vocbase_t* vocbase) {
   }
  
   tick = TRI_StringUInt64(CurrentTick);
-  TRI_InsertArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "tick", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, tick));
+  TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "tick", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, tick));
 
   TRI_FreeString(TRI_CORE_MEM_ZONE, tick);
 
