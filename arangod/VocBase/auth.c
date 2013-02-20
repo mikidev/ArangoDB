@@ -246,7 +246,7 @@ bool TRI_LoadAuthInfo (TRI_vocbase_t* vocbase) {
   collection = TRI_LookupCollectionByNameVocBase(vocbase, "_users");
 
   if (collection == NULL) {
-    LOG_INFO("collection '_users' does not exist, no authentication available");
+    LOG_WARNING("collection '_users' does not exist, no authentication available");
     return false;
   }
 
@@ -255,12 +255,14 @@ bool TRI_LoadAuthInfo (TRI_vocbase_t* vocbase) {
   primary = collection->_collection;
 
   if (primary == NULL) {
-    LOG_FATAL_AND_EXIT("collection '_users' cannot be loaded");
+    LOG_ERROR("collection '_users' cannot be loaded");
+    return false;
   }
 
   if (! TRI_IS_DOCUMENT_COLLECTION(primary->base._info._type)) {
     TRI_ReleaseCollectionVocBase(vocbase, collection);
-    LOG_FATAL_AND_EXIT("collection '_users' has an unknown collection type");
+    LOG_ERROR("collection '_users' has an unknown collection type");
+    return false;
   }
   
   TRI_WriteLockReadWriteLock(&vocbase->_authInfoLock);

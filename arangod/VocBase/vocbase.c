@@ -1173,7 +1173,12 @@ TRI_vocbase_t* TRI_OpenVocBase (char const* path) {
     LOG_FATAL_AND_EXIT("out of memory");
   }
 
+  vocbase->_authInfoLoaded = false;
+
   vocbase->_cursors = TRI_CreateShadowsGeneralCursor();
+  if (vocbase->_cursors == NULL) {
+    LOG_FATAL_AND_EXIT("cannot create cursors");
+  }
 
   // init AQL functions
   vocbase->_functions = TRI_InitialiseFunctionsAql();
@@ -1266,13 +1271,6 @@ TRI_vocbase_t* TRI_OpenVocBase (char const* path) {
   TRI_InitThread(&vocbase->_cleanup);
   TRI_StartThread(&vocbase->_cleanup, "[cleanup]", TRI_CleanupVocBase, vocbase);
 
-  // .............................................................................
-  // load auth information
-  // .............................................................................
-
-  TRI_LoadAuthInfo(vocbase);
-  TRI_DefaultAuthInfo(vocbase);
-
   // we are done
   return vocbase;
 }
@@ -1340,6 +1338,7 @@ void TRI_DestroyVocBase (TRI_vocbase_t* vocbase) {
   TRI_DestroyLockFile(vocbase->_lockFile);
   TRI_FreeString(TRI_CORE_MEM_ZONE, vocbase->_lockFile);
  
+  // release transaction data
   TRI_FreeTransactionContext(vocbase->_transactionContext);
 
   // destroy locks
@@ -1350,7 +1349,16 @@ void TRI_DestroyVocBase (TRI_vocbase_t* vocbase) {
 
   // free the filename path
   TRI_Free(TRI_CORE_MEM_ZONE, vocbase->_path);
+}
 
+////////////////////////////////////////////////////////////////////////////////
+/// @brief load authentication information
+////////////////////////////////////////////////////////////////////////////////
+
+void TRI_LoadAuthInfoVocBase (TRI_vocbase_t* vocbase) {
+  vocbase->_authInfoLoaded = TRI_LoadAuthInfo(vocbase);
+
+  TRI_DefaultAuthInfo(vocbase);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2014,7 +2022,7 @@ void TRI_InitialiseVocBase () {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief shut downs the voc database components
+/// @brief shuts down the voc database components
 ////////////////////////////////////////////////////////////////////////////////
 
 void TRI_ShutdownVocBase () {

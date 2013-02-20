@@ -365,10 +365,13 @@ typedef struct TRI_vocbase_s {
   char* _path;
   char* _lockFile;
 
+  bool _authInfoLoaded; // flag indicating whether the authentication info was loaded successfully
+
   bool _removeOnDrop; // wipe collection from disk after dropping
   bool _removeOnCompacted; // wipe datafile from disk after compaction
   bool _defaultWaitForSync;
   bool _forceSyncShapes; // force synching of shape data to disk
+
   TRI_voc_size_t _defaultMaximalSize;
 
   TRI_read_write_lock_t _lock;
@@ -410,11 +413,11 @@ TRI_vocbase_t;
 
 typedef enum {
   TRI_VOC_COL_STATUS_CORRUPTED = 0,
-  TRI_VOC_COL_STATUS_NEW_BORN = 1,
-  TRI_VOC_COL_STATUS_UNLOADED = 2,
-  TRI_VOC_COL_STATUS_LOADED = 3,
+  TRI_VOC_COL_STATUS_NEW_BORN  = 1,
+  TRI_VOC_COL_STATUS_UNLOADED  = 2,
+  TRI_VOC_COL_STATUS_LOADED    = 3,
   TRI_VOC_COL_STATUS_UNLOADING = 4,
-  TRI_VOC_COL_STATUS_DELETED = 5
+  TRI_VOC_COL_STATUS_DELETED   = 5
 }
 TRI_vocbase_col_status_e;
 
@@ -498,6 +501,12 @@ TRI_vocbase_t* TRI_OpenVocBase (char const* path);
 ////////////////////////////////////////////////////////////////////////////////
 
 void TRI_DestroyVocBase (TRI_vocbase_t*);
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief load authentication information
+////////////////////////////////////////////////////////////////////////////////
+
+void TRI_LoadAuthInfoVocBase (TRI_vocbase_t*);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief returns all known collections
