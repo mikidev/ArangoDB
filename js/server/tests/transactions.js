@@ -26,6 +26,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 var internal = require("internal");
+var arangodb = require("org/arangodb");
+var db = arangodb.db;
 var jsunity = require("jsunity");
 
 // -----------------------------------------------------------------------------
@@ -36,7 +38,7 @@ var jsunity = require("jsunity");
 /// @brief test suite
 ////////////////////////////////////////////////////////////////////////////////
 
-function transactionsSuite () {
+function transactionInvocationSuite () {
 
   return {
 
@@ -51,7 +53,7 @@ function transactionsSuite () {
 /// @brief test: invalid invocations of TRANSACTION() function
 ////////////////////////////////////////////////////////////////////////////////
 
-    testInvalidInvocations: function () {
+    testInvalidInvocations : function () {
       var tests = [
         undefined,
         null,
@@ -95,7 +97,7 @@ function transactionsSuite () {
 /// @brief test: valid invocations of TRANSACTION() function
 ////////////////////////////////////////////////////////////////////////////////
 
-    testValidEmptyInvocations: function () {
+    testValidEmptyInvocations : function () {
       var result;
 
       var tests = [
@@ -117,14 +119,212 @@ function transactionsSuite () {
 }
 
 // -----------------------------------------------------------------------------
+// --SECTION--                                                        test suite
+// -----------------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief test suite
+////////////////////////////////////////////////////////////////////////////////
+
+function transactionCollectionsSuite () {
+  var cn1 = "UnitTestsTransaction1";
+  var cn2 = "UnitTestsTransaction2";
+
+  var c1, c2;
+
+  return {
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief set up
+////////////////////////////////////////////////////////////////////////////////
+
+    setUp : function () {
+      db._drop(cn1);
+      c1 = db._create(cn1);
+      
+      db._drop(cn2);
+      c2 = db._create(cn2);
+    },
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief tear down
+////////////////////////////////////////////////////////////////////////////////
+
+    tearDown : function () {
+      if (c1 !== null) {
+        c1.drop();
+      }
+
+      c1 = null;
+      
+      if (c2 !== null) {
+        c2.drop();
+      }
+
+      c2 = null;
+    },
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief test: trx using non-existing collections
+////////////////////////////////////////////////////////////////////////////////
+
+    testNonExistingCollections : function () {
+      var obj = {
+        collections : {
+          read : [ "UnitTestsTransactionNonExisting" ]
+        },
+        action : function () {
+          return true;
+        }
+      };
+
+      try {
+        assertTrue(TRANSACTION(obj));
+        fail();
+      }
+      catch (err) {
+        assertEqual(arangodb.errors.ERROR_ARANGO_COLLECTION_NOT_FOUND.code, err.errorNum);
+      }
+    },
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief test: trx using non-declared collections
+////////////////////////////////////////////////////////////////////////////////
+
+    testNonDeclaredCollections1 : function () {
+      var obj = {
+        collections : {
+        },
+        action : function () {
+          c1.save({ _key : "foo" });
+          return true;
+        }
+      };
+
+      try {
+        TRANSACTION(obj);
+        fail();
+      }
+      catch (err) {
+        assertEqual(arangodb.errors.ERROR_TRANSACTION_UNREGISTERED_COLLECTION.code, err.errorNum);
+      }
+    },
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief test: trx using non-declared collections
+////////////////////////////////////////////////////////////////////////////////
+
+    testNonDeclaredCollections2 : function () {
+      var obj = {
+        collections : { 
+          write : [ cn2 ]
+        },
+        action : function () {
+          c1.save({ _key : "foo" });
+          return true;
+        }
+      };
+
+      try {
+        TRANSACTION(obj);
+        fail();
+      }
+      catch (err) {
+        assertEqual(arangodb.errors.ERROR_TRANSACTION_UNREGISTERED_COLLECTION.code, err.errorNum);
+      }
+    },
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief test: trx using wrong mode
+////////////////////////////////////////////////////////////////////////////////
+
+    testNonDeclaredCollections3 : function () {
+      var obj = {
+        collections : { 
+          read : [ cn1 ]
+        },
+        action : function () {
+          c1.save({ _key : "foo" });
+          return true;
+        }
+      };
+
+      try {
+        TRANSACTION(obj);
+        fail();
+      }
+      catch (err) {
+        assertEqual(arangodb.errors.ERROR_TRANSACTION_UNREGISTERED_COLLECTION.code, err.errorNum);
+      }
+    },
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief test: trx using no collections
+////////////////////////////////////////////////////////////////////////////////
+
+    testNoCollections : function () {
+      var obj = {
+        collections : { 
+        },
+        action : function () {
+          return true;
+        }
+      };
+
+      assertTrue(TRANSACTION(obj));
+    },
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief test: trx using no collections
+////////////////////////////////////////////////////////////////////////////////
+
+    testNoCollectionsAql : function () {
+      var result;
+      
+      var obj = {
+        collections : { 
+        },
+        action : function () {
+          result = internal.AQL_QUERY("FOR i IN [ 1, 2, 3 ] RETURN i").getRows();
+          return true;
+        }
+      };
+
+      assertTrue(TRANSACTION(obj));
+      assertEqual([ 1, 2, 3 ], result);
+    },
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief test: trx using valid collections
+////////////////////////////////////////////////////////////////////////////////
+
+    testValidCollections : function () {
+      var obj = {
+        collections : { 
+          write : [ cn1 ]
+        },
+        action : function () {
+          c1.save({ _key : "foo" });
+          return true;
+        }
+      };
+
+      assertTrue(TRANSACTION(obj));
+    }
+
+  };
+}
+
+// -----------------------------------------------------------------------------
 // --SECTION--                                                              main
 // -----------------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief executes the test suite
+/// @brief executes the test suites
 ////////////////////////////////////////////////////////////////////////////////
 
-jsunity.run(transactionsSuite);
+jsunity.run(transactionInvocationSuite);
+jsunity.run(transactionCollectionsSuite);
 
 return jsunity.done();
 

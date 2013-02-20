@@ -2312,7 +2312,7 @@ static v8::Handle<v8::Value> JS_GetRowsGeneralCursor (v8::Arguments const& argv)
 
       for (uint32_t i = 0; i < max; ++i) {
         TRI_general_cursor_row_t row = cursor->next(cursor);
-        if (!row) {
+        if (! row) {
           break;
         }
         rows->Set(i, TRI_ObjectJson((TRI_json_t*) row));
