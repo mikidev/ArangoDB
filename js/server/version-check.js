@@ -426,12 +426,12 @@
 
   if (lastVersion > currentVersion) {
     // downgrade??
-    console.error("Database directory version (" + lastVersion 
-                  + ") is higher than server version (" + currentVersion + ").");
+    console.warn("Database directory version (" + lastVersion 
+                 + ") is higher than server version (" + currentVersion + ").");
 
-    console.error("It seems like you are running ArangoDB on a database directory"
-                  + " that was created with a newer version of ArangoDB. Maybe this"
-                  +" is what you wanted but it is not supported by ArangoDB.");
+    console.warn("It seems like you are running ArangoDB on a database directory"
+                 + " that was created with a newer version of ArangoDB. Maybe this"
+                 +" is what you wanted but it is not supported by ArangoDB.");
 
     // still, allow the start
     return true;
