@@ -310,6 +310,63 @@ function transactionCollectionsSuite () {
       };
 
       assertTrue(TRANSACTION(obj));
+    },
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief test: trx using valid collections
+////////////////////////////////////////////////////////////////////////////////
+
+    testValidMultipleCollections : function () {
+      var obj = {
+        collections : { 
+          write : [ cn1, cn2 ]
+        },
+        action : function () {
+          c1.save({ _key : "foo" });
+          c2.save({ _key : "foo" });
+          return true;
+        }
+      };
+
+      assertTrue(TRANSACTION(obj));
+    },
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief test: trx using valid collections
+////////////////////////////////////////////////////////////////////////////////
+
+    testRedeclareCollection : function () {
+      var obj = {
+        collections : { 
+          read : [ cn1 ],
+          write : [ cn1 ]
+        },
+        action : function () {
+          c1.save({ _key : "foo" });
+          return true;
+        }
+      };
+
+      assertTrue(TRANSACTION(obj));
+    },
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief test: trx using valid collections
+////////////////////////////////////////////////////////////////////////////////
+
+    testReadWriteCollections : function () {
+      var obj = {
+        collections : { 
+          read : [ cn1 ],
+          write : [ cn2 ]
+        },
+        action : function () {
+          c2.save({ _key : "foo" });
+          return true;
+        }
+      };
+
+      assertTrue(TRANSACTION(obj));
     }
 
   };
