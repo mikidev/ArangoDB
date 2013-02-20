@@ -461,6 +461,52 @@ static bool DropCollectionCallback (TRI_collection_t* col, void* data) {
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief write information to the SHUTDOWN file in case of a clean shutdown
+///
+/// TODO: this function is a stub at the moment. The really interesting stuff
+/// is not yet written
+////////////////////////////////////////////////////////////////////////////////
+
+static int WriteShutdownInfo (TRI_vocbase_t* vocbase) {
+  TRI_json_t* json;
+  char* filename;
+  char* tick;
+  bool ok;
+
+  LOG_DEBUG("Writing shutdown information");
+
+  filename = TRI_Concatenate2File(vocbase->_path, "SHUTDOWN");
+  
+  // create a json object with shutdown information
+  json = TRI_CreateArrayJson(TRI_UNKNOWN_MEM_ZONE);
+  if (json == NULL) {
+    // out of memory
+    LOG_ERROR("cannot save shutdown information in file '%s': out of memory", filename);
+
+    TRI_FreeString(TRI_CORE_MEM_ZONE, filename);
+
+    return TRI_ERROR_OUT_OF_MEMORY;
+  }
+ 
+  tick = TRI_StringUInt64(CurrentTick);
+  TRI_InsertArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "tick", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, tick));
+
+  TRI_FreeString(TRI_CORE_MEM_ZONE, tick);
+
+  // save json info to file
+  ok = TRI_SaveJson(filename, json);
+    
+  if (! ok) {
+    LOG_ERROR("could not save shutdown information in '%s': %s", filename, TRI_last_error());
+  }
+
+  TRI_FreeJson(TRI_UNKNOWN_MEM_ZONE, json);
+  TRI_Free(TRI_CORE_MEM_ZONE, filename);
+
+  return TRI_ERROR_NO_ERROR;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// @brief free the path buffer allocated for a collection
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1338,6 +1384,9 @@ void TRI_DestroyVocBase (TRI_vocbase_t* vocbase) {
   TRI_DestroyLockFile(vocbase->_lockFile);
   TRI_FreeString(TRI_CORE_MEM_ZONE, vocbase->_lockFile);
  
+  // write clean shutdown info
+  WriteShutdownInfo(vocbase);
+
   // release transaction data
   TRI_FreeTransactionContext(vocbase->_transactionContext);
 
