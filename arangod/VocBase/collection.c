@@ -48,6 +48,54 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief find filename with highest id in vector
+///
+/// this is likely to be the newest file. returns the position of the file in 
+/// the vector
+////////////////////////////////////////////////////////////////////////////////
+          
+static size_t FindNewestFile (const TRI_vector_string_t* const vector) {
+  regex_t re;
+  uint64_t maxId;
+  size_t maxPosition;
+  size_t i, n;
+  
+  assert(vector->_length > 0);
+
+  maxId = 0; 
+  maxPosition = 0;
+
+  if (vector->_length == 1) {
+    // short cut
+    return 0;
+  }
+
+  regcomp(&re, "(journal|datafile|index|compactor)-([0-9][0-9]*)\\.db$", REG_EXTENDED);
+
+  n = vector->_length;
+  
+  for (i = 0; i < n; ++i) {
+    char const* file = TRI_AtVectorString(vector, i);
+    regmatch_t matches[3];
+  
+    if (regexec(&re, file, sizeof(matches) / sizeof(matches[0]), matches, 0) == 0) {
+      char const* idString = file + matches[2].rm_so;
+      size_t length = matches[2].rm_eo - matches[2].rm_so;
+      uint64_t foundId = TRI_UInt64String2(idString, length);
+
+      if (foundId > maxId) {
+        maxId = foundId;
+        maxPosition = i;
+      }
+    }
+  }
+  
+  regfree(&re);
+
+  return maxPosition;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// @brief initialises a new collection
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -93,19 +141,21 @@ static TRI_col_file_structure_t ScanCollectionDirectory (char const* path) {
 
   regcomp(&re, "^(journal|datafile|index|compactor)-([0-9][0-9]*)\\.(db|json)$", REG_EXTENDED);
 
-  TRI_InitVectorString(&structure._journals, TRI_CORE_MEM_ZONE);
+  TRI_InitVectorString(&structure._journals,   TRI_CORE_MEM_ZONE);
   TRI_InitVectorString(&structure._compactors, TRI_CORE_MEM_ZONE);
-  TRI_InitVectorString(&structure._datafiles, TRI_CORE_MEM_ZONE);
-  TRI_InitVectorString(&structure._indexes, TRI_CORE_MEM_ZONE);
+  TRI_InitVectorString(&structure._datafiles,  TRI_CORE_MEM_ZONE);
+  TRI_InitVectorString(&structure._indexes,    TRI_CORE_MEM_ZONE);
 
   for (i = 0;  i < n;  ++i) {
     char const* file = files._buffer[i];
     regmatch_t matches[4];
 
     if (regexec(&re, file, sizeof(matches) / sizeof(matches[0]), matches, 0) == 0) {
+      // file type: (journal|datafile|index|compactor)
       char const* first = file + matches[1].rm_so;
       size_t firstLen = matches[1].rm_eo - matches[1].rm_so;
-
+      
+      // extension
       char const* third = file + matches[3].rm_so;
       size_t thirdLen = matches[3].rm_eo - matches[3].rm_so;
 
@@ -125,29 +175,35 @@ static TRI_col_file_structure_t ScanCollectionDirectory (char const* path) {
       // .............................................................................
 
       else if (TRI_EqualString2("db", third, thirdLen)) {
+        TRI_vector_string_t* vector;
         char* filename;
 
         filename = TRI_Concatenate2File(path, file);
+        vector = NULL;
 
         // file is a journal
         if (TRI_EqualString2("journal", first, firstLen)) {
-          TRI_PushBackVectorString(&structure._journals, filename);
+          vector = &structure._journals;
         }
 
         // file is a compactor file
         else if (TRI_EqualString2("compactor", first, firstLen)) {
-          TRI_PushBackVectorString(&structure._compactors, filename);
+          vector = &structure._compactors;
         }
 
         // file is a datafile
         else if (TRI_EqualString2("datafile", first, firstLen)) {
-          TRI_PushBackVectorString(&structure._datafiles, filename);
+          vector = &structure._datafiles;
         }
 
-        // ups, what kind of file is that
-        else {
+        if (vector == NULL) {
+          // oops, what kind of file is that
           LOG_ERROR("unknown datafile '%s'", file);
           TRI_FreeString(TRI_CORE_MEM_ZONE, filename);
+        }
+        else {
+          // we found a vector to insert the file into
+          TRI_PushBackVectorString(vector, filename);
         }
       }
       else {
@@ -1162,6 +1218,40 @@ void TRI_DestroyFileStructureCollection (TRI_col_file_structure_t* info) {
   TRI_DestroyVectorString(&info->_compactors);
   TRI_DestroyVectorString(&info->_datafiles);
   TRI_DestroyVectorString(&info->_indexes);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief iterate over the markers in the last journal
+///
+/// we do this on startup to find the most recent tick values
+////////////////////////////////////////////////////////////////////////////////
+
+bool TRI_IterateLastJournalCollection (const char* const path,
+                                       bool (*iterator)(TRI_df_marker_t const*, void*, TRI_datafile_t*, bool)) {
+  TRI_col_file_structure_t structure = ScanCollectionDirectory(path);
+  TRI_vector_string_t* vector = &structure._journals;
+
+  if (vector->_length > 0) {
+    TRI_datafile_t* datafile;
+    char* filename;
+    size_t i;
+
+    i = FindNewestFile(vector);
+    filename = TRI_AtVectorString(vector, i);
+
+    LOG_DEBUG("iterating over collection's last journal file '%s'", filename);
+
+    datafile = TRI_OpenDatafile(filename);
+    if (datafile != NULL) {
+      TRI_IterateDatafile(datafile, iterator, NULL, true);  
+
+      TRI_CloseDatafile(datafile);
+    }
+  }
+
+  TRI_DestroyFileStructureCollection(&structure);
+
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
