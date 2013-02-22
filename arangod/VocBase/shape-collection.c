@@ -60,8 +60,7 @@ static bool CreateJournal (TRI_shape_collection_t* collection) {
     char* jname;
     char* number;
 
-    // TODO: id is a 64bit integer
-    number = TRI_StringUInt32(TRI_NewGlobalIdSequence());
+    number = TRI_StringUInt64((uint64_t) TRI_NewGlobalIdSequence());
   
     jname = TRI_Concatenate3String("journal-", number, ".db");
     TRI_FreeString(TRI_CORE_MEM_ZONE, number);
@@ -99,7 +98,7 @@ static bool CreateJournal (TRI_shape_collection_t* collection) {
     bool ok;
 
     // and use the correct name
-    number = TRI_StringUInt32(journal->_fid);
+    number = TRI_StringUInt64((uint64_t) journal->_fid);
     jname = TRI_Concatenate3String("journal-", number, ".db");
     filename = TRI_Concatenate2File(collection->base._directory, jname);
 
@@ -204,7 +203,7 @@ static bool CloseJournal (TRI_shape_collection_t* collection, TRI_datafile_t* jo
     char* number;
     bool ok;
 
-    number = TRI_StringUInt32(journal->_fid);
+    number = TRI_StringUInt64((uint64_t) journal->_fid);
     dname = TRI_Concatenate3String("datafile-", number, ".db");
     filename = TRI_Concatenate2File(collection->base._directory, dname);
 

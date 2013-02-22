@@ -162,7 +162,7 @@ static void RemoveDatafileCallback (TRI_datafile_t* datafile, void* data) {
 
   collection = data;
 
-  number = TRI_StringUInt32(datafile->_fid);
+  number = TRI_StringUInt64((uint64_t) datafile->_fid);
   name = TRI_Concatenate3String("deleted-", number, ".db");
   filename = TRI_Concatenate2File(collection->_directory, name);
 
