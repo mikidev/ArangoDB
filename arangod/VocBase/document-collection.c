@@ -663,7 +663,7 @@ static int UpdateDocument (TRI_doc_operation_context_t* context,
   // .............................................................................
 
   // generate a new tick
-  marker->_rid = marker->base._tick = TRI_NewIdVocBase();
+  marker->_rid = marker->base._tick = TRI_NewGlobalIdSequence();
 
   // find and select a journal
   primary = context->_collection;
@@ -794,7 +794,7 @@ static int DeleteDocument (TRI_doc_operation_context_t* context,
   }
 
   // generate a new tick
-  marker->base._tick = TRI_NewIdVocBase();
+  marker->base._tick = TRI_NewGlobalIdSequence();
 
   // find and select a journal
   total = sizeof(TRI_doc_deletion_key_marker_t) + keyBodySize;
@@ -1054,7 +1054,7 @@ static void InitDocumentMarker (TRI_doc_document_key_marker_t* marker,
 
   // generate a new tick
   if (generateRid) {
-    marker->_rid = marker->base._tick = TRI_NewIdVocBase();
+    marker->_rid = marker->base._tick = TRI_NewGlobalIdSequence();
   }
 
   marker->_sid = 0;
@@ -1653,7 +1653,7 @@ static bool OpenIndexIterator (char const* filename, void* data) {
 
   if (iis != NULL && iis->_type == TRI_JSON_NUMBER) {
     iid = iis->_value._number;
-    TRI_UpdateIdVocBase((TRI_sequence_value_t) iid);
+    TRI_UpdateGlobalIdSequence((TRI_sequence_value_t) iid);
   }
   else {
     LOG_ERROR("ignoring index, index identifier could not be located");
@@ -1856,10 +1856,10 @@ TRI_document_collection_t* TRI_CreateDocumentCollection (TRI_vocbase_t* vocbase,
   bool isVolatile;
 
   if (cid > 0) {
-    TRI_UpdateIdVocBase((TRI_sequence_value_t) cid);
+    TRI_UpdateGlobalIdSequence((TRI_sequence_value_t) cid);
   }
   else {
-    cid = (TRI_voc_cid_t) TRI_NewIdVocBase();
+    cid = (TRI_voc_cid_t) TRI_NewGlobalIdSequence();
   }
   parameter->_cid = cid;
 

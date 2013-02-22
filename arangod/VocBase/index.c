@@ -64,7 +64,7 @@ static void InitIndex (TRI_index_t* idx,
                        const TRI_idx_type_e type, 
                        struct TRI_primary_collection_s* collection,
                        bool unique) {
-  idx->_iid            = TRI_NewIdVocBase();
+  idx->_iid            = TRI_NewGlobalIdSequence();
   idx->_type           = type;
   idx->_collection     = collection;
   idx->_unique         = unique;

@@ -64,7 +64,7 @@ static TRI_shadow_t* CreateShadow (const void* const data) {
 
   shadow->_rc        = 1;
   shadow->_data      = (void*) data;
-  shadow->_id        = TRI_NewIdVocBase();
+  shadow->_id        = TRI_NewGlobalIdSequence();
   shadow->_deleted   = false;
   shadow->_type      = SHADOW_TRANSIENT;
 

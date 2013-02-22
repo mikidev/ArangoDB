@@ -128,7 +128,7 @@ static TRI_datafile_t* CreateJournal (TRI_primary_collection_t* primary, bool co
 
     // construct a suitable filename
     // TODO: id is a 64bit integer
-    number = TRI_StringUInt32(TRI_NewIdVocBase());
+    number = TRI_StringUInt32(TRI_NewGlobalIdSequence());
 
     if (compactor) {
       jname = TRI_Concatenate3String("journal-", number, ".db");
@@ -215,7 +215,7 @@ static TRI_datafile_t* CreateJournal (TRI_primary_collection_t* primary, bool co
 
   cm.base._size = sizeof(TRI_col_header_marker_t);
   cm.base._type = TRI_COL_MARKER_HEADER;
-  cm.base._tick = TRI_NewIdVocBase();
+  cm.base._tick = TRI_NewGlobalIdSequence();
 
   cm._cid = collection->_info._cid;
 

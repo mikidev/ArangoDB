@@ -61,7 +61,7 @@ static bool CreateJournal (TRI_shape_collection_t* collection) {
     char* number;
 
     // TODO: id is a 64bit integer
-    number = TRI_StringUInt32(TRI_NewIdVocBase());
+    number = TRI_StringUInt32(TRI_NewGlobalIdSequence());
   
     jname = TRI_Concatenate3String("journal-", number, ".db");
     TRI_FreeString(TRI_CORE_MEM_ZONE, number);
@@ -138,7 +138,7 @@ static bool CreateJournal (TRI_shape_collection_t* collection) {
 
   cm.base._size = sizeof(TRI_col_header_marker_t);
   cm.base._type = TRI_COL_MARKER_HEADER;
-  cm.base._tick = TRI_NewIdVocBase();
+  cm.base._tick = TRI_NewGlobalIdSequence();
 
   cm._cid = collection->base._info._cid;
 
@@ -352,7 +352,7 @@ TRI_shape_collection_t* TRI_CreateShapeCollection (TRI_vocbase_t* vocbase,
   }
 
   parameter->_type = TRI_COL_TYPE_SHAPE;
-  parameter->_cid  = (TRI_voc_cid_t) TRI_NewIdVocBase();
+  parameter->_cid  = (TRI_voc_cid_t) TRI_NewGlobalIdSequence();
   parameter->_waitForSync = (vocbase->_forceSyncShapes || parameter->_waitForSync);
 
   collection = TRI_CreateCollection(vocbase, &shape->base, path, parameter);
@@ -418,7 +418,7 @@ int TRI_WriteShapeCollection (TRI_shape_collection_t* collection,
   int res;
 
   // generate a new tick
-  marker->_tick = TRI_NewIdVocBase();
+  marker->_tick = TRI_NewGlobalIdSequence();
 
   // lock the collection
   TRI_LockMutex(&collection->_lock);

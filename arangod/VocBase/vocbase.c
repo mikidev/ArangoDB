@@ -56,29 +56,6 @@
 #include "Ahuacatl/ahuacatl-statementlist.h"
 
 // -----------------------------------------------------------------------------
-// --SECTION--                                                       ID SEQUENCE
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-// --SECTION--                                                 private variables
-// -----------------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////////////
-/// @addtogroup VocBase
-/// @{
-////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief the sequence used to generate server-local ids
-////////////////////////////////////////////////////////////////////////////////
-
-static TRI_sequence_t IdSequence;
-
-////////////////////////////////////////////////////////////////////////////////
-/// @}
-////////////////////////////////////////////////////////////////////////////////
-
-// -----------------------------------------------------------------------------
 // --SECTION--                                             COLLECTION DICTIONARY
 // -----------------------------------------------------------------------------
 
@@ -807,7 +784,7 @@ static int ScanPath (TRI_vocbase_t* vocbase, char const* path) {
       res = TRI_LoadCollectionInfo(file, &info);
 
       if (res == TRI_ERROR_NO_ERROR) {
-        TRI_SetValueNoLockSequence(&vocbase->_idSequence, (TRI_sequence_value_t) info._cid);
+        TRI_UpdateGlobalIdNoLockSequence((TRI_sequence_value_t) info._cid);
       }
 
       if (res != TRI_ERROR_NO_ERROR) {
@@ -937,7 +914,7 @@ static TRI_vocbase_col_t* BearCollectionVocBase (TRI_vocbase_t* vocbase,
   // .............................................................................
 
   // create a new collection
-  cid = (TRI_voc_cid_t) TRI_NewIdVocBase();
+  cid = (TRI_voc_cid_t) TRI_NewGlobalIdSequence();
   collection = AddCollection(vocbase, type, name, cid, NULL);
 
   if (collection == NULL) {
@@ -1256,30 +1233,6 @@ bool TRI_IsAllowedCollectionName (bool allowSystem, char const* name) {
   } 
 
   return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief create a new sequence value
-////////////////////////////////////////////////////////////////////////////////
-
-TRI_sequence_value_t TRI_NewIdVocBase () {
-  return TRI_IncreaseSequence(&IdSequence);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief updates the sequence value to some new value if necessary
-////////////////////////////////////////////////////////////////////////////////
-
-void TRI_UpdateIdVocBase (TRI_sequence_value_t value) {
-  TRI_SetValueSequence(&IdSequence, value);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief updates the sequence value to some new value if necessary
-////////////////////////////////////////////////////////////////////////////////
-
-void TRI_UpdateIdNoLockVocBase (TRI_sequence_value_t value) {
-  TRI_SetValueNoLockSequence(&IdSequence, value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2208,9 +2161,10 @@ void TRI_ReleaseCollectionVocBase (TRI_vocbase_t* vocbase, TRI_vocbase_col_t* co
 void TRI_InitialiseVocBase () {
   TRI_InitialiseHashes();
   TRI_InitialiseRandom();
-  TRI_GlobalInitStatementListAql();
 
-  TRI_InitSequence(&IdSequence, 0);
+  TRI_InitialiseGlobalIdSequence();
+
+  TRI_GlobalInitStatementListAql();
 
   PageSize = (size_t) getpagesize();
 
@@ -2238,8 +2192,8 @@ void TRI_ShutdownVocBase () {
   TRI_ShutdownRandom();
   TRI_ShutdownHashes();
   TRI_GlobalFreeStatementListAql();
-  
-  TRI_DestroySequence(&IdSequence);
+
+  TRI_ShutdownGlobalIdSequence();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

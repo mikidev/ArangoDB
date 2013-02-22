@@ -573,7 +573,7 @@ static bool CheckDatafile (TRI_datafile_t* datafile) {
       return false;
     }
 
-    TRI_UpdateIdVocBase(marker->_tick);
+    TRI_UpdateGlobalIdSequence(marker->_tick);
 
     size = TRI_DF_ALIGN_BLOCK(marker->_size);
     currentSize += size;
@@ -796,12 +796,12 @@ TRI_datafile_t* TRI_CreateDatafile (char const* filename,
   memset(&header, 0, sizeof(TRI_df_header_marker_t));
 
   header.base._size   = sizeof(TRI_df_header_marker_t);
-  header.base._tick   = TRI_NewIdVocBase();
+  header.base._tick   = TRI_NewGlobalIdSequence();
   header.base._type   = TRI_DF_MARKER_HEADER;
 
   header._version     = TRI_DF_VERSION;
   header._maximalSize = maximalSize;
-  header._fid         = TRI_NewIdVocBase();
+  header._fid         = TRI_NewGlobalIdSequence();
 
   // create CRC
   TRI_FillCrcMarkerDatafile(datafile, &header.base, sizeof(TRI_df_header_marker_t), 0, 0, 0, 0);
@@ -898,7 +898,7 @@ TRI_datafile_t* TRI_CreateAnonymousDatafile (const TRI_voc_size_t maximalSize) {
                mmHandle,
                maximalSize,
                0,
-               TRI_NewIdVocBase(),
+               TRI_NewGlobalIdSequence(),
                data);
 
   return datafile;
@@ -959,7 +959,7 @@ TRI_datafile_t* TRI_CreatePhysicalDatafile (char const* filename,
                mmHandle,
                maximalSize,
                0,
-               TRI_NewIdVocBase(),
+               TRI_NewGlobalIdSequence(),
                data);
 
   return datafile;
@@ -1452,7 +1452,7 @@ int TRI_SealDatafile (TRI_datafile_t* datafile) {
   memset(&footer, 0, sizeof(TRI_df_footer_marker_t));
 
   footer.base._size = sizeof(TRI_df_footer_marker_t);
-  footer.base._tick = TRI_NewIdVocBase();
+  footer.base._tick = TRI_NewGlobalIdSequence();
   footer.base._type = TRI_DF_MARKER_FOOTER;
 
   // create CRC
