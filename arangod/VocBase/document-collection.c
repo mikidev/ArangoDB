@@ -53,7 +53,7 @@ static int UpdateImmediateIndexes (TRI_document_collection_t*,
 
 static int DeleteImmediateIndexes (TRI_document_collection_t*,
                                    TRI_doc_mptr_t const*,
-                                   TRI_voc_tick_t);
+                                   TRI_sequence_value_t);
 
 static int UpdateDocument (TRI_doc_operation_context_t*,
                            TRI_doc_mptr_t const*,
@@ -663,7 +663,7 @@ static int UpdateDocument (TRI_doc_operation_context_t* context,
   // .............................................................................
 
   // generate a new tick
-  marker->_rid = marker->base._tick = TRI_NewTickVocBase();
+  marker->_rid = marker->base._tick = TRI_NewIdVocBase();
 
   // find and select a journal
   primary = context->_collection;
@@ -794,7 +794,7 @@ static int DeleteDocument (TRI_doc_operation_context_t* context,
   }
 
   // generate a new tick
-  marker->base._tick = TRI_NewTickVocBase();
+  marker->base._tick = TRI_NewIdVocBase();
 
   // find and select a journal
   total = sizeof(TRI_doc_deletion_key_marker_t) + keyBodySize;
@@ -1054,7 +1054,7 @@ static void InitDocumentMarker (TRI_doc_document_key_marker_t* marker,
 
   // generate a new tick
   if (generateRid) {
-    marker->_rid = marker->base._tick = TRI_NewTickVocBase();
+    marker->_rid = marker->base._tick = TRI_NewIdVocBase();
   }
 
   marker->_sid = 0;
@@ -1653,7 +1653,7 @@ static bool OpenIndexIterator (char const* filename, void* data) {
 
   if (iis != NULL && iis->_type == TRI_JSON_NUMBER) {
     iid = iis->_value._number;
-    TRI_UpdateTickVocBase(iid);
+    TRI_UpdateIdVocBase((TRI_sequence_value_t) iid);
   }
   else {
     LOG_ERROR("ignoring index, index identifier could not be located");
@@ -1856,10 +1856,10 @@ TRI_document_collection_t* TRI_CreateDocumentCollection (TRI_vocbase_t* vocbase,
   bool isVolatile;
 
   if (cid > 0) {
-    TRI_UpdateTickVocBase(cid);
+    TRI_UpdateIdVocBase((TRI_sequence_value_t) cid);
   }
   else {
-    cid = TRI_NewTickVocBase();
+    cid = (TRI_voc_cid_t) TRI_NewIdVocBase();
   }
   parameter->_cid = cid;
 
@@ -2426,7 +2426,7 @@ static int UpdateImmediateIndexes (TRI_document_collection_t* collection,
 
 static int DeleteImmediateIndexes (TRI_document_collection_t* collection,
                                    TRI_doc_mptr_t const* header,
-                                   TRI_voc_tick_t deletion) {
+                                   TRI_sequence_value_t deletion) {
   union { TRI_doc_mptr_t const* c; TRI_doc_mptr_t* v; } change;
   TRI_primary_collection_t* primary;
   TRI_doc_mptr_t* found;

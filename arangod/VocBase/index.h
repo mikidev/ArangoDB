@@ -41,6 +41,7 @@
 #include "SkipLists/skiplistIndex.h"
 #include "IndexIterators/index-iterator.h"
 #include "IndexOperators/index-operator.h"
+#include "VocBase/sequence.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,7 +69,7 @@ struct TRI_document_collection_s;
 /// @brief index identifier
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef TRI_voc_tick_t TRI_idx_iid_t;
+typedef TRI_sequence_value_t TRI_idx_iid_t;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief index type

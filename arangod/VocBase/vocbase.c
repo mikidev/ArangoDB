@@ -56,6 +56,10 @@
 #include "Ahuacatl/ahuacatl-statementlist.h"
 
 // -----------------------------------------------------------------------------
+// --SECTION--                                                       ID SEQUENCE
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
 // --SECTION--                                                 private variables
 // -----------------------------------------------------------------------------
 
@@ -65,22 +69,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief random server identifier (16 bit)
+/// @brief the sequence used to generate server-local ids
 ////////////////////////////////////////////////////////////////////////////////
 
-static uint16_t ServerIdentifier = 0;
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief current tick identifier (48 bit)
-////////////////////////////////////////////////////////////////////////////////
-
-static uint64_t CurrentTick = 0;
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief tick lock
-////////////////////////////////////////////////////////////////////////////////
-
-static TRI_spin_t TickLock;
+static TRI_sequence_t IdSequence;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @}
@@ -461,6 +453,53 @@ static bool DropCollectionCallback (TRI_collection_t* col, void* data) {
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief get the server id filename 
+////////////////////////////////////////////////////////////////////////////////
+
+static char* GetServerIdFilename (TRI_vocbase_t* vocbase) {
+  char* filename = TRI_Concatenate2File(vocbase->_path, "SERVER");
+
+  return filename;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief read / create the server id on startup
+////////////////////////////////////////////////////////////////////////////////
+
+static int ReadServerId (TRI_vocbase_t* vocbase) {
+  char* filename;
+  TRI_server_id_t id;
+  int res;
+  
+  filename = GetServerIdFilename(vocbase); 
+
+  if (filename == NULL) {
+    return TRI_ERROR_OUT_OF_MEMORY;
+  }
+
+  res = TRI_ReadServerId(filename, &id);
+  if (res == TRI_ERROR_FILE_NOT_FOUND) {
+    // id file does not yet exist. now create it
+    res = TRI_GenerateServerId(&id);
+
+    if (res == TRI_ERROR_NO_ERROR) {
+      // id was generated. now save it
+      res = TRI_WriteServerId(filename, id);
+    }
+  }
+
+
+  if (res == TRI_ERROR_NO_ERROR) {
+    // id was read successfully
+    vocbase->_serverId = id;
+  }
+
+  TRI_FreeString(TRI_CORE_MEM_ZONE, filename);
+
+  return res;
+}
+/*
+////////////////////////////////////////////////////////////////////////////////
 /// @brief get the shutdown info filename
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -585,7 +624,7 @@ static int WriteShutdownInfo (TRI_vocbase_t* vocbase) {
     return TRI_ERROR_OUT_OF_MEMORY;
   }
  
-  tick = TRI_StringUInt64((uint64_t) CurrentTick);
+  sequenceId = TRI_StringUInt64((uint64_t) TRI_GetValueSequence(vocbase->_idSequence));
   TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "tick", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, tick));
 
   TRI_FreeString(TRI_CORE_MEM_ZONE, tick);
@@ -604,7 +643,7 @@ static int WriteShutdownInfo (TRI_vocbase_t* vocbase) {
 
   return TRI_ERROR_NO_ERROR;
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief free the path buffer allocated for a collection
 ////////////////////////////////////////////////////////////////////////////////
@@ -710,7 +749,7 @@ static TRI_vocbase_col_t* AddCollection (TRI_vocbase_t* vocbase,
 ////////////////////////////////////////////////////////////////////////////////
 
 static bool StartupJournalIterator (TRI_df_marker_t const* marker, void* data, TRI_datafile_t* datafile, bool journal) {
-  TRI_UpdateTickUnlockedVocBase(marker->_tick);
+//  TRI_UpdateTickUnlockedVocBase(marker->_tick);
   return true;
 }
 
@@ -768,7 +807,7 @@ static int ScanPath (TRI_vocbase_t* vocbase, char const* path) {
       res = TRI_LoadCollectionInfo(file, &info);
 
       if (res == TRI_ERROR_NO_ERROR) {
-        TRI_UpdateTickVocBase(info._cid);
+        TRI_SetValueNoLockSequence(&vocbase->_idSequence, (TRI_sequence_value_t) info._cid);
       }
 
       if (res != TRI_ERROR_NO_ERROR) {
@@ -871,6 +910,7 @@ static TRI_vocbase_col_t* BearCollectionVocBase (TRI_vocbase_t* vocbase,
                                                  TRI_col_type_e type) {
   union { void const* v; TRI_vocbase_col_t* c; } found;
   TRI_vocbase_col_t* collection;
+  TRI_voc_cid_t cid;
   
   // check that the name does not contain any strange characters
   if (! TRI_IsAllowedCollectionName(false, name)) {
@@ -897,7 +937,8 @@ static TRI_vocbase_col_t* BearCollectionVocBase (TRI_vocbase_t* vocbase,
   // .............................................................................
 
   // create a new collection
-  collection = AddCollection(vocbase, type, name, TRI_NewTickVocBase(), NULL);
+  cid = (TRI_voc_cid_t) TRI_NewIdVocBase();
+  collection = AddCollection(vocbase, type, name, cid, NULL);
 
   if (collection == NULL) {
     TRI_WRITE_UNLOCK_COLLECTIONS_VOCBASE(vocbase);
@@ -1218,47 +1259,27 @@ bool TRI_IsAllowedCollectionName (bool allowSystem, char const* name) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief create a new tick
+/// @brief create a new sequence value
 ////////////////////////////////////////////////////////////////////////////////
 
-TRI_voc_tick_t TRI_NewTickVocBase () {
-  uint64_t tick = ServerIdentifier;
-
-  TRI_LockSpin(&TickLock);
-
-  tick |= (++CurrentTick) << 16;
-
-  TRI_UnlockSpin(&TickLock);
-
-  return tick;
+TRI_sequence_value_t TRI_NewIdVocBase () {
+  return TRI_IncreaseSequence(&IdSequence);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief updates the tick counter
+/// @brief updates the sequence value to some new value if necessary
 ////////////////////////////////////////////////////////////////////////////////
 
-void TRI_UpdateTickVocBase (TRI_voc_tick_t tick) {
-  TRI_voc_tick_t s = tick >> 16;
-
-  TRI_LockSpin(&TickLock);
-
-  if (CurrentTick < s) {
-    CurrentTick = s;
-  }
-
-  TRI_UnlockSpin(&TickLock);
+void TRI_UpdateIdVocBase (TRI_sequence_value_t value) {
+  TRI_SetValueSequence(&IdSequence, value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief updates the tick counter, without taking the lock
+/// @brief updates the sequence value to some new value if necessary
 ////////////////////////////////////////////////////////////////////////////////
 
-void TRI_UpdateTickUnlockedVocBase (TRI_voc_tick_t tick) {
-  TRI_voc_tick_t s = tick >> 16;
-
-  if (CurrentTick < s) {
-    CurrentTick = s;
-  }
+void TRI_UpdateIdNoLockVocBase (TRI_sequence_value_t value) {
+  TRI_SetValueNoLockSequence(&IdSequence, value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1359,9 +1380,11 @@ TRI_vocbase_t* TRI_OpenVocBase (char const* path) {
   }
 
   // init AQL functions
+  vocbase->_lockFile  = lockFile;
+  vocbase->_path      = TRI_DuplicateString(path);
+  vocbase->_serverId  = 0;
+  
   vocbase->_functions = TRI_InitialiseFunctionsAql();
-  vocbase->_lockFile = lockFile;
-  vocbase->_path = TRI_DuplicateString(path);
 
   TRI_InitVectorPointer(&vocbase->_collections, TRI_UNKNOWN_MEM_ZONE);
   TRI_InitVectorPointer(&vocbase->_deadCollections, TRI_UNKNOWN_MEM_ZONE);
@@ -1408,9 +1431,8 @@ TRI_vocbase_t* TRI_OpenVocBase (char const* path) {
   vocbase->_removeOnCompacted  = true;
   vocbase->_removeOnDrop       = true;
 
-  // read the data from the SHUTDOWN file if it exists
-  if (ReadShutdownInfo(vocbase) != TRI_ERROR_NO_ERROR) {
-    LOG_FATAL_AND_EXIT("checking shutdown information file failed");
+  if (TRI_ERROR_NO_ERROR != ReadServerId(vocbase)) {
+    LOG_FATAL_AND_EXIT("reading/creating server id failed");
   }
 
   // scan the database path for collections
@@ -1432,7 +1454,7 @@ TRI_vocbase_t* TRI_OpenVocBase (char const* path) {
   }
 
   // remove the SHUTDOWN file
-  RemoveShutdownInfo(vocbase);
+  // RemoveShutdownInfo(vocbase);
 
   // .............................................................................
   // vocbase is now active
@@ -1524,7 +1546,7 @@ void TRI_DestroyVocBase (TRI_vocbase_t* vocbase) {
   TRI_FreeString(TRI_CORE_MEM_ZONE, vocbase->_lockFile);
  
   // write clean shutdown info
-  WriteShutdownInfo(vocbase);
+  // WriteShutdownInfo(vocbase);
 
   // release transaction data
   TRI_FreeTransactionContext(vocbase->_transactionContext);
@@ -1534,7 +1556,7 @@ void TRI_DestroyVocBase (TRI_vocbase_t* vocbase) {
   TRI_DestroyReadWriteLock(&vocbase->_lock);
   TRI_DestroyCondition(&vocbase->_syncWaitersCondition);
   TRI_DestroyCondition(&vocbase->_cleanupCondition);
-
+  
   // free the filename path
   TRI_Free(TRI_CORE_MEM_ZONE, vocbase->_path);
 }
@@ -2188,10 +2210,9 @@ void TRI_InitialiseVocBase () {
   TRI_InitialiseRandom();
   TRI_GlobalInitStatementListAql();
 
-  ServerIdentifier = TRI_UInt16Random();
-  PageSize = (size_t) getpagesize();
+  TRI_InitSequence(&IdSequence, 0);
 
-  TRI_InitSpin(&TickLock);
+  PageSize = (size_t) getpagesize();
 
 #ifdef TRI_READLINE_VERSION
   LOG_TRACE("%s", "$Revision: READLINE " TRI_READLINE_VERSION " $");
@@ -2214,11 +2235,11 @@ void TRI_InitialiseVocBase () {
 ////////////////////////////////////////////////////////////////////////////////
 
 void TRI_ShutdownVocBase () {
-  TRI_DestroySpin(&TickLock);
-
   TRI_ShutdownRandom();
   TRI_ShutdownHashes();
   TRI_GlobalFreeStatementListAql();
+  
+  TRI_DestroySequence(&IdSequence);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

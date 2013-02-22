@@ -33,6 +33,7 @@
 #include "BasicsC/json.h"
 #include "ShapedJson/json-shaper.h"
 #include "VocBase/barrier.h"
+#include "VocBase/sequence.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -135,8 +136,8 @@ TRI_doc_operation_context_t;
 typedef struct TRI_doc_mptr_s {
   TRI_voc_rid_t _rid;        // this is the revision identifier
   TRI_voc_fid_t _fid;        // this is the datafile identifier
-  TRI_voc_tick_t _validFrom; // this is the creation time
-  TRI_voc_tick_t _validTo;   // this is the deletion time (0 if document is not yet deleted)
+  TRI_sequence_value_t _validFrom; // this is the creation time
+  TRI_sequence_value_t _validTo;   // this is the deletion time (0 if document is not yet deleted)
   void const* _data;         // this is the pointer to the raw marker
   char* _key;                // this is the document identifier (string)
 }

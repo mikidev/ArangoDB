@@ -25,9 +25,10 @@
 /// @author Copyright 2012, triagens GmbH, Cologne, Germany
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <BasicsC/logging.h>
+#include "shadow-data.h"
 
-#include "VocBase/shadow-data.h"
+#include "BasicsC/logging.h"
+#include "VocBase/vocbase.h"
 
 // -----------------------------------------------------------------------------
 // --SECTION--                                                       SHADOW DATA
@@ -63,7 +64,7 @@ static TRI_shadow_t* CreateShadow (const void* const data) {
 
   shadow->_rc        = 1;
   shadow->_data      = (void*) data;
-  shadow->_id        = TRI_NewTickVocBase();
+  shadow->_id        = TRI_NewIdVocBase();
   shadow->_deleted   = false;
   shadow->_type      = SHADOW_TRANSIENT;
 

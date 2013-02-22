@@ -27,11 +27,11 @@
 
 #include "primary-collection.h"
 
-#include <BasicsC/conversions.h>
-#include <BasicsC/files.h>
-#include <BasicsC/hashes.h>
-#include <BasicsC/logging.h>
-#include <BasicsC/strings.h>
+#include "BasicsC/conversions.h"
+#include "BasicsC/files.h"
+#include "BasicsC/hashes.h"
+#include "BasicsC/logging.h"
+#include "BasicsC/strings.h"
 
 #include "VocBase/key-generator.h"
 #include "VocBase/voc-shaper.h"
@@ -78,7 +78,7 @@ static bool IsEqualKeyDocument (TRI_associative_pointer_t* array, void const* ke
 ////////////////////////////////////////////////////////////////////////////////
 
 static uint64_t HashKeyDatafile (TRI_associative_pointer_t* array, void const* key) {
-  TRI_voc_tick_t const* k = key;
+  TRI_sequence_value_t const* k = key;
 
   return *k;
 }
@@ -98,7 +98,7 @@ static uint64_t HashElementDatafile (TRI_associative_pointer_t* array, void cons
 ////////////////////////////////////////////////////////////////////////////////
 
 static bool IsEqualKeyElementDatafile (TRI_associative_pointer_t* array, void const* key, void const* element) {
-  TRI_voc_tick_t const* k = key;
+  TRI_sequence_value_t const* k = key;
   TRI_doc_datafile_info_t const* e = element;
 
   return *k == e->_fid;
@@ -127,7 +127,8 @@ static TRI_datafile_t* CreateJournal (TRI_primary_collection_t* primary, bool co
     char* number;
 
     // construct a suitable filename
-    number = TRI_StringUInt32(TRI_NewTickVocBase());
+    // TODO: id is a 64bit integer
+    number = TRI_StringUInt32(TRI_NewIdVocBase());
 
     if (compactor) {
       jname = TRI_Concatenate3String("journal-", number, ".db");
@@ -214,7 +215,7 @@ static TRI_datafile_t* CreateJournal (TRI_primary_collection_t* primary, bool co
 
   cm.base._size = sizeof(TRI_col_header_marker_t);
   cm.base._type = TRI_COL_MARKER_HEADER;
-  cm.base._tick = TRI_NewTickVocBase();
+  cm.base._tick = TRI_NewIdVocBase();
 
   cm._cid = collection->_info._cid;
 

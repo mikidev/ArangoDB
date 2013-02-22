@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE (tst_basic_elements) {
   BOOST_CHECK_EQUAL(8, sizeof(TRI_voc_eid_t));
   BOOST_CHECK_EQUAL(8, sizeof(TRI_voc_rid_t));
   BOOST_CHECK_EQUAL(4, sizeof(TRI_voc_size_t));
-  BOOST_CHECK_EQUAL(8, sizeof(TRI_voc_tick_t));
+  BOOST_CHECK_EQUAL(8, sizeof(TRI_sequence_value_t));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

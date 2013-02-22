@@ -89,6 +89,8 @@ bin_arangod_SOURCES = \
 	arangod/VocBase/index.c \
 	arangod/VocBase/key-generator.c \
 	arangod/VocBase/primary-collection.c \
+	arangod/VocBase/server-id.c \
+	arangod/VocBase/sequence.c \
 	arangod/VocBase/shadow-data.c \
 	arangod/VocBase/shape-collection.c \
 	arangod/VocBase/synchroniser.c \

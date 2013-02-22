@@ -35,6 +35,9 @@
 #include "BasicsC/threads.h"
 #include "BasicsC/vector.h"
 #include "BasicsC/voc-errors.h"
+
+#include "VocBase/server-id.h"
+#include "VocBase/sequence.h"
 #include "VocBase/transaction.h"
 
 #ifdef __cplusplus
@@ -267,22 +270,16 @@ extern size_t PageSize;
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief tick type (48bit)
-////////////////////////////////////////////////////////////////////////////////
-
-typedef uint64_t TRI_voc_tick_t;
-
-////////////////////////////////////////////////////////////////////////////////
 /// @brief collection identifier type
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef uint64_t TRI_voc_cid_t;
+typedef TRI_sequence_value_t TRI_voc_cid_t;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief datafile identifier type
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef uint64_t TRI_voc_fid_t;
+typedef TRI_sequence_value_t TRI_voc_fid_t;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief document key identifier type
@@ -362,18 +359,9 @@ typedef uint32_t TRI_col_type_t;
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef struct TRI_vocbase_s {
-  char* _path;
-  char* _lockFile;
-
-  bool _authInfoLoaded; // flag indicating whether the authentication info was loaded successfully
-
-  bool _removeOnDrop; // wipe collection from disk after dropping
-  bool _removeOnCompacted; // wipe datafile from disk after compaction
-  bool _defaultWaitForSync;
-  bool _forceSyncShapes; // force synching of shape data to disk
-
-  TRI_voc_size_t _defaultMaximalSize;
-
+  TRI_server_id_t _serverId;   // server uuid
+  TRI_sequence_t  _idSequence; // id sequence used for local ids
+  
   TRI_read_write_lock_t _lock;
 
   TRI_vector_pointer_t _collections;
@@ -381,11 +369,25 @@ typedef struct TRI_vocbase_s {
 
   TRI_associative_pointer_t _collectionsByName;
   TRI_associative_pointer_t _collectionsById;
+  
+  TRI_transaction_context_t* _transactionContext;
+  
+  char* _path;
+  char* _lockFile;
+
+  bool _authInfoLoaded;     // flag indicating whether the authentication info was loaded successfully
+  bool _removeOnDrop;       // wipe collection from disk after dropping
+  bool _removeOnCompacted;  // wipe datafile from disk after compaction
+  bool _defaultWaitForSync; // default waitForSync value when creating new collections
+  bool _forceSyncShapes;    // force synching of shape data to disk
+
+  TRI_voc_size_t _defaultMaximalSize;
 
   TRI_associative_pointer_t _authInfo;
-  TRI_read_write_lock_t _authInfoLock;
-
-  TRI_transaction_context_t* _transactionContext;
+  TRI_read_write_lock_t     _authInfoLock;
+  
+  struct TRI_shadow_store_s* _cursors;
+  TRI_associative_pointer_t* _functions; 
 
   // state of the database
   // 0 = inactive
@@ -397,9 +399,6 @@ typedef struct TRI_vocbase_s {
   TRI_thread_t _synchroniser;
   TRI_thread_t _compactor;
   TRI_thread_t _cleanup;
-
-  struct TRI_shadow_store_s* _cursors;
-  TRI_associative_pointer_t* _functions; 
 
   TRI_condition_t _cleanupCondition;
   TRI_condition_t _syncWaitersCondition;
@@ -460,22 +459,22 @@ TRI_vocbase_col_t;
 bool TRI_IsAllowedCollectionName (bool, char const*);
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief create a new tick
+/// @brief create a new sequence value
 ////////////////////////////////////////////////////////////////////////////////
 
-TRI_voc_tick_t TRI_NewTickVocBase (void);
+TRI_sequence_value_t TRI_NewIdVocBase (void);
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief updates the tick counter
+/// @brief updates the sequence value to some new value if necessary
 ////////////////////////////////////////////////////////////////////////////////
 
-void TRI_UpdateTickVocBase (TRI_voc_tick_t tick);
+void TRI_UpdateIdVocBase (TRI_sequence_value_t);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief updates the tick counter, without taking the lock
 ////////////////////////////////////////////////////////////////////////////////
 
-void TRI_UpdateTickUnlockedVocBase (TRI_voc_tick_t tick);
+void TRI_UpdateIdNoLockVocBase (TRI_sequence_value_t);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief msyncs a memory block between begin (incl) and end (excl)

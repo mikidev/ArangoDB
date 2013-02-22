@@ -28,11 +28,11 @@
 #ifndef TRIAGENS_DURHAM_VOC_BASE_SHADOW_DATA_H
 #define TRIAGENS_DURHAM_VOC_BASE_SHADOW_DATA_H 1
 
-#include <BasicsC/common.h>
-#include <BasicsC/locks.h>
-#include <BasicsC/associative.h>
+#include "BasicsC/common.h"
+#include "BasicsC/locks.h"
+#include "BasicsC/associative.h"
 
-#include "VocBase/vocbase.h"
+#include "VocBase/sequence.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,7 +89,7 @@ TRI_shadow_type_e;
 /// @brief typedef for shadow ids
 ////////////////////////////////////////////////////////////////////////////////
 
-typedef TRI_voc_tick_t TRI_shadow_id; 
+typedef TRI_sequence_value_t TRI_shadow_id; 
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief shadow data (base struct)

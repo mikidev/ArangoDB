@@ -29,7 +29,6 @@
 #define TRIAGENS_DURHAM_VOC_BASE_DATAFILE_H 1
 
 #include "BasicsC/common.h"
-
 #include "BasicsC/locks.h"
 
 #include "VocBase/vocbase.h"
@@ -217,7 +216,7 @@ TRI_df_scan_t;
 typedef struct TRI_df_scan_entry_s {
   TRI_voc_size_t _position;
   TRI_voc_size_t _size;    
-  TRI_voc_tick_t _tick;
+  TRI_sequence_value_t _tick;
 
   TRI_df_marker_type_t _type;
 
@@ -293,11 +292,11 @@ TRI_datafile_t;
 ///     <td>see @ref TRI_df_marker_type_t</td>
 ///   </tr>
 ///   <tr>
-///     <td>TRI_voc_tick_t</td>
+///     <td>TRI_sequence_value_t</td>
 ///     <td>_tick</td>
 ///     <td>A unique identifier of the current blob. The identifier is
 ///         unique within all datafiles of all collections. See
-///         @ref TRI_voc_tick_t for details.</td>
+///         @ref TRI_sequence_value_t for details.</td>
 ///   </tr>
 /// </table>
 ///
@@ -315,7 +314,7 @@ typedef struct TRI_df_marker_s {
   char _padding_df_marker[4];
 #endif
 
-  TRI_voc_tick_t _tick;                 // 8 bytes, will be generated
+  TRI_sequence_value_t _tick;                 // 8 bytes, will be generated
 }
 TRI_df_marker_t;
 
@@ -340,7 +339,7 @@ TRI_df_marker_t;
 ///         error TRI_ERROR_ARANGO_DATAFILE_FULL is returned.</td>
 ///   </tr>
 ///   <tr>
-///     <td>TRI_voc_tick_t</td>
+///     <td>TRI_sequence_value_t</td>
 ///     <td>_fid</td>
 ///     <td>The creation time of the datafile. This time is different
 ///         from the creation time of the blob entry stored in
@@ -354,7 +353,7 @@ typedef struct TRI_df_header_marker_s {
 
   TRI_df_version_t _version;            //  4 bytes
   TRI_voc_size_t _maximalSize;          //  4 bytes
-  TRI_voc_tick_t _fid;                  //  8 bytes
+  TRI_sequence_value_t _fid;            //  8 bytes
 }
 TRI_df_header_marker_t;
 
