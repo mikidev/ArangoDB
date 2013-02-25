@@ -120,12 +120,12 @@
     // the actual upgrade tasks. all tasks defined here should be "re-entrant"
     // --------------------------------------------------------------------------
     
-    // create the _modules collection
+    // create the collection "_ids"
     addTask("createIds", "setup _ids collection", function () {
       return createSystemCollection("_ids");
     });
 
-    // set up the collection _users 
+    // create the collection "_users"
     addTask("setupUsers", "setup _users collection", function () {
       return createSystemCollection("_users", { waitForSync : true });
     });
@@ -159,7 +159,7 @@
       return true;
     });
   
-    // set up the collection _graphs
+    // create the collection "_graphs"
     addTask("setupGraphs", "setup _graphs collection", function () {
       return createSystemCollection("_graphs", { waitForSync : true });
     });
@@ -237,17 +237,17 @@
         return true;
       });
     
-    // create the _modules collection
+    // create the collection "_modules"
     addTask("createModules", "setup _modules collection", function () {
       return createSystemCollection("_modules");
     });
     
-    // create the _routing collection
+    // create the collection "_routing"
     addTask("createRouting", "setup _routing collection", function () {
       return createSystemCollection("_routing");
     });
     
-    // create the default route in the _routing collection
+    // create the default route in the "_routing" collection
     addTask("insertDefaultRoute", "insert default route for the admin interface", function () {
       var routing = getCollection("_routing");
 
@@ -308,7 +308,7 @@
 
       return true;
     });
-  
+    
     // set up the collection _structures
     addTask("setupStructures", "setup _structures collection", function () {
       return createSystemCollection("_structures", { waitForSync : true });
@@ -426,7 +426,13 @@
 
   if (lastVersion === currentVersion) {
     // version match!
-    applyFixes();
+    if (internal.UPGRADE) {
+      // upgrade requested
+      return runUpgrade(currentVersion);
+    }
+    else {
+      applyFixes();
+    }
     return true;
   }
 
@@ -435,12 +441,18 @@
     console.warn("Database directory version (" + lastVersion 
                  + ") is higher than server version (" + currentVersion + ").");
 
-    console.warn("It seems like you are running ArangoDB on a database directory"
+    console.warn("It seems like you are running ArangoDB with a database directory"
                  + " that was created with a newer version of ArangoDB. Maybe this"
-                 +" is what you wanted but it is not supported by ArangoDB.");
-
-    // still, allow the start
-    return true;
+                 + " is what you wanted but it is not supported by ArangoDB.");
+    
+    if (internal.UPGRADE) {
+      // upgrade requested
+      return runUpgrade(currentVersion);
+    }
+    else {
+      // still, allow the start
+      return true;
+    }
   }
 
   if (lastVersion < currentVersion) {
@@ -453,8 +465,8 @@
                   + ") is lower than server version (" + currentVersion + ").");
 
     console.error("It seems like you have upgraded the ArangoDB binary. If this is"
-                  +" what you wanted to do, please restart with the --upgrade option"
-                  +" to upgrade the data in the database directory.");
+                  + " what you wanted to do, please restart with the --upgrade option"
+                  + " to upgrade the data in the database directory.");
 
     // do not start unless started with --upgrade
     return false;
