@@ -338,16 +338,25 @@ void TRI_FreeCollection (TRI_collection_t*);
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief set the collection revision id with the marker's tick value
+////////////////////////////////////////////////////////////////////////////////
+
+void TRI_UpdateRevisionCollection (TRI_collection_t*,
+                                   const TRI_df_marker_t* const);
+
+////////////////////////////////////////////////////////////////////////////////
 /// @brief creates a parameter info block from file
 ////////////////////////////////////////////////////////////////////////////////
 
-int TRI_LoadCollectionInfo (char const*, TRI_col_info_t*);
+int TRI_LoadCollectionInfo (char const*, 
+                            TRI_col_info_t*);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief saves a parameter info block to file
 ////////////////////////////////////////////////////////////////////////////////
 
-int TRI_SaveCollectionInfo (char const*, const TRI_col_info_t* const);
+int TRI_SaveCollectionInfo (char const*, 
+                            const TRI_col_info_t* const);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief updates the parameter info block
@@ -361,7 +370,8 @@ int TRI_UpdateCollectionInfo (TRI_vocbase_t*,
 /// @brief renames a collection
 ////////////////////////////////////////////////////////////////////////////////
 
-int TRI_RenameCollection (TRI_collection_t*, char const*);
+int TRI_RenameCollection (TRI_collection_t*, 
+                          char const*);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @}
@@ -421,11 +431,11 @@ TRI_col_file_structure_t TRI_FileStructureCollectionDirectory (char const*);
 void TRI_DestroyFileStructureCollection (TRI_col_file_structure_t*);
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief iterate over markers in last journal
+/// @brief iterate over markers in collection journals
 ////////////////////////////////////////////////////////////////////////////////
 
-bool TRI_IterateLastJournalCollection (const char* const,
-                                       bool (*)(TRI_df_marker_t const*, void*, TRI_datafile_t*, bool));
+bool TRI_IterateJournalsCollection (const char* const,
+                                    bool (*)(TRI_df_marker_t const*, void*, TRI_datafile_t*, bool));
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief determine whether a collection name is a system collection name

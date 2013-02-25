@@ -161,6 +161,89 @@ static bool EqualKeyCollectionName (TRI_associative_pointer_t* array, void const
 
   return TRI_EqualString(k, e->_name);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief create a JSON array with collection meta information
+///
+/// this data is saved whenever a collection is being removed
+////////////////////////////////////////////////////////////////////////////////
+
+static TRI_json_t* CreateJsonCollection (TRI_vocbase_col_t const* collection) {
+  TRI_json_t* json;
+  char* cid;
+
+  cid = TRI_StringUInt64((uint64_t) collection->_cid);
+
+  json = TRI_CreateArrayJson(TRI_UNKNOWN_MEM_ZONE);
+  if (json != NULL) {
+    TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "name", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, collection->_name));
+    TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "id", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, cid));
+  }
+
+  TRI_FreeString(TRI_CORE_MEM_ZONE, cid);
+
+  return json;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief save removal info for a collection on drop
+///
+/// removal info will be permanently saved in the "_ids" collection
+////////////////////////////////////////////////////////////////////////////////
+
+static bool WriteCollectionRemovalInfo (TRI_vocbase_t* vocbase, 
+                                        TRI_vocbase_col_t const* collection) {
+  TRI_vocbase_col_t* idCollection;
+  TRI_json_t* json;
+  TRI_primary_collection_t* primary;
+  TRI_shaped_json_t* shaped;
+  TRI_doc_mptr_t* mptr;
+  TRI_doc_operation_context_t context;
+  int res;
+
+  if (collection == NULL) {
+    return false;
+  }
+
+  json = CreateJsonCollection(collection);
+  if (json == NULL) {
+    return false;
+  }
+    
+  idCollection = TRI_UseCollectionByNameVocBase(vocbase, "_ids");
+  if (idCollection == NULL) {
+    TRI_FreeJson(TRI_UNKNOWN_MEM_ZONE, json);
+    return false;
+  }
+  
+  primary = (TRI_primary_collection_t*) idCollection->_collection;
+
+  if (primary == NULL) {
+    TRI_ReleaseCollectionVocBase(vocbase, idCollection);
+    TRI_FreeJson(TRI_UNKNOWN_MEM_ZONE, json);
+    return false;
+  }
+
+  TRI_InitContextPrimaryCollection(&context, primary, TRI_DOC_UPDATE_ERROR, false);
+
+  shaped = TRI_ShapedJsonJson(primary->_shaper, json);
+  if (shaped == NULL) {
+    TRI_ReleaseCollectionVocBase(vocbase, idCollection);
+    TRI_FreeJson(TRI_UNKNOWN_MEM_ZONE, json);
+    return false;
+  }
+
+  primary->beginWrite(primary);
+  res = primary->create(&context, TRI_DOC_MARKER_KEY_DOCUMENT, &mptr, shaped, NULL, NULL);
+  primary->endWrite(primary);
+
+  TRI_FreeShapedJson(primary->_shaper, shaped);
+  TRI_FreeJson(TRI_UNKNOWN_MEM_ZONE, json);
+  
+  TRI_ReleaseCollectionVocBase(vocbase, idCollection);
+
+  return (res == TRI_ERROR_NO_ERROR);
+}
     
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief remove a collection name from the global list of collections
@@ -170,6 +253,10 @@ static bool EqualKeyCollectionName (TRI_associative_pointer_t* array, void const
 ////////////////////////////////////////////////////////////////////////////////
 
 static bool UnregisterCollection (TRI_vocbase_t* vocbase, TRI_vocbase_col_t* collection) {
+  // write collection removal information to "_ids" collection
+  WriteCollectionRemovalInfo(vocbase, collection);
+
+  // unlink the collection from the 2 lookup arrays
   TRI_WRITE_LOCK_COLLECTIONS_VOCBASE(vocbase);
 
   TRI_RemoveKeyAssociativePointer(&vocbase->_collectionsByName, collection->_name);
@@ -725,8 +812,12 @@ static TRI_vocbase_col_t* AddCollection (TRI_vocbase_t* vocbase,
 /// counter accordingly
 ////////////////////////////////////////////////////////////////////////////////
 
-static bool StartupJournalIterator (TRI_df_marker_t const* marker, void* data, TRI_datafile_t* datafile, bool journal) {
-//  TRI_UpdateTickUnlockedVocBase(marker->_tick);
+static bool StartupJournalIterator (TRI_df_marker_t const* marker, 
+                                    void* data, 
+                                    TRI_datafile_t* datafile, 
+                                    bool journal) {
+  TRI_UpdateGlobalIdNoLockSequence(marker->_tick);
+  
   return true;
 }
 
@@ -842,7 +933,7 @@ static int ScanPath (TRI_vocbase_t* vocbase, char const* path) {
 
           c = AddCollection(vocbase, type, info._name, info._cid, file);
 
-          TRI_IterateLastJournalCollection(file, StartupJournalIterator);
+          TRI_IterateJournalsCollection(file, StartupJournalIterator);
 
           if (c == NULL) {
             LOG_ERROR("failed to add document collection from '%s'", file);

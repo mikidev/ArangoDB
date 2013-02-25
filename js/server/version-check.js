@@ -119,6 +119,11 @@
     // --------------------------------------------------------------------------
     // the actual upgrade tasks. all tasks defined here should be "re-entrant"
     // --------------------------------------------------------------------------
+    
+    // create the _modules collection
+    addTask("createIds", "setup _ids collection", function () {
+      return createSystemCollection("_ids");
+    });
 
     // set up the collection _users 
     addTask("setupUsers", "setup _users collection", function () {

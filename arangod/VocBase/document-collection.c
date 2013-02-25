@@ -144,19 +144,6 @@ static bool IsVisible (TRI_doc_mptr_t const* header,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief set the collection revision id with the marker's tick value
-////////////////////////////////////////////////////////////////////////////////
-
-static void CollectionRevisionUpdate (TRI_document_collection_t* document,
-                                      const TRI_df_marker_t* const marker) {
-  TRI_col_info_t* info = &document->base.base._info;
-
-  if (marker->_tick > info->_rid) {
-    info->_rid = marker->_tick;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// @}
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -308,7 +295,7 @@ static int WriteElement (TRI_document_collection_t* document,
     return res;
   }
 
-  CollectionRevisionUpdate(document, marker);
+  TRI_UpdateRevisionCollection(&document->base.base, marker);
 
   TRI_LOCK_JOURNAL_ENTRIES_DOC_COLLECTION(document);
 
@@ -1406,7 +1393,7 @@ static bool OpenIterator (TRI_df_marker_t const* marker, void* data, TRI_datafil
    
   primary = &collection->base;
 
-  CollectionRevisionUpdate(collection, marker);
+  TRI_UpdateRevisionCollection(&primary->base, marker);
 
   // new or updated document
   if (marker->_type == TRI_DOC_MARKER_KEY_EDGE ||
