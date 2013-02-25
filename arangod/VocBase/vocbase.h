@@ -359,8 +359,6 @@ typedef uint32_t TRI_col_type_t;
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef struct TRI_vocbase_s {
-  TRI_server_id_t _serverId;   // server uuid
-  
   TRI_read_write_lock_t _lock;
 
   TRI_vector_pointer_t _collections;

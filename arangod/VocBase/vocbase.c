@@ -548,7 +548,6 @@ static char* GetServerIdFilename (TRI_vocbase_t* vocbase) {
 
 static int ReadServerId (TRI_vocbase_t* vocbase) {
   char* filename;
-  TRI_server_id_t id;
   int res;
   
   filename = GetServerIdFilename(vocbase); 
@@ -557,21 +556,15 @@ static int ReadServerId (TRI_vocbase_t* vocbase) {
     return TRI_ERROR_OUT_OF_MEMORY;
   }
 
-  res = TRI_ReadServerId(filename, &id);
+  res = TRI_ReadServerId(filename);
   if (res == TRI_ERROR_FILE_NOT_FOUND) {
     // id file does not yet exist. now create it
-    res = TRI_GenerateServerId(&id);
+    res = TRI_GenerateServerId();
 
     if (res == TRI_ERROR_NO_ERROR) {
       // id was generated. now save it
-      res = TRI_WriteServerId(filename, id);
+      res = TRI_WriteServerId(filename);
     }
-  }
-
-
-  if (res == TRI_ERROR_NO_ERROR) {
-    // id was read successfully
-    vocbase->_serverId = id;
   }
 
   TRI_FreeString(TRI_CORE_MEM_ZONE, filename);
@@ -1442,7 +1435,6 @@ TRI_vocbase_t* TRI_OpenVocBase (char const* path) {
   // init AQL functions
   vocbase->_lockFile  = lockFile;
   vocbase->_path      = TRI_DuplicateString(path);
-  vocbase->_serverId  = 0;
   
   vocbase->_functions = TRI_InitialiseFunctionsAql();
 

@@ -31,6 +31,8 @@
 #include "BasicsC/common.h"
 #include "BasicsC/locks.h"
 
+#include "VocBase/sequence.h"
+#include "VocBase/server-id.h"
 #include "VocBase/vocbase.h"
 
 #ifdef __cplusplus
@@ -131,12 +133,12 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef enum {
-  TRI_DF_STATE_CLOSED = 1,        // datafile is closed
-  TRI_DF_STATE_READ = 2,          // datafile is opened read only
-  TRI_DF_STATE_WRITE = 3,         // datafile is opened read/append
-  TRI_DF_STATE_OPEN_ERROR = 4,    // an error has occurred while opening
-  TRI_DF_STATE_WRITE_ERROR = 5,   // an error has occurred while writing
-  TRI_DF_STATE_RENAME_ERROR = 6   // an error has occurred while renaming
+  TRI_DF_STATE_CLOSED       = 1, // datafile is closed
+  TRI_DF_STATE_READ         = 2, // datafile is opened read only
+  TRI_DF_STATE_WRITE        = 3, // datafile is opened read/append
+  TRI_DF_STATE_OPEN_ERROR   = 4, // an error has occurred while opening
+  TRI_DF_STATE_WRITE_ERROR  = 5, // an error has occurred while writing
+  TRI_DF_STATE_RENAME_ERROR = 6  // an error has occurred while renaming
 }
 TRI_df_state_e;
 
@@ -306,7 +308,7 @@ TRI_datafile_t;
 
 typedef struct TRI_df_marker_s {
   TRI_voc_size_t _size;                 // 4 bytes, must be supplied
-  TRI_voc_crc_t _crc;                   // 4 bytes, will be generated
+  TRI_voc_crc_t  _crc;                  // 4 bytes, will be generated
 
   TRI_df_marker_type_t _type;           // 4 bytes, must be supplied
 
@@ -314,7 +316,7 @@ typedef struct TRI_df_marker_s {
   char _padding_df_marker[4];
 #endif
 
-  TRI_sequence_value_t _tick;                 // 8 bytes, will be generated
+  TRI_sequence_value_t _tick;           // 8 bytes, will be generated
 }
 TRI_df_marker_t;
 
@@ -490,6 +492,14 @@ void TRI_FreeDatafile (TRI_datafile_t*);
 ////////////////////////////////////////////////////////////////////////////////
 
 #define TRI_DF_ALIGN_BLOCK(a) ((((a) + TRI_DF_BLOCK_ALIGNMENT - 1) / TRI_DF_BLOCK_ALIGNMENT) * TRI_DF_BLOCK_ALIGNMENT)
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief read the marker tick information into the server & local id parts
+////////////////////////////////////////////////////////////////////////////////
+
+bool TRI_ParseIdMarkerDatafile (const TRI_df_marker_t* const,
+                                TRI_server_id_t*,
+                                TRI_sequence_value_t*);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief checks whether a marker is valid

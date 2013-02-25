@@ -996,6 +996,33 @@ void TRI_FreeDatafile (TRI_datafile_t* datafile) {
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief read the marker tick information into the server & local id parts
+////////////////////////////////////////////////////////////////////////////////
+
+bool TRI_ParseIdMarkerDatafile (const TRI_df_marker_t* const marker,
+                                TRI_server_id_t* serverId,
+                                TRI_sequence_value_t* sequenceValue) {
+  const uint64_t* ptr = (uint64_t*) &marker->_type;
+
+  // there are two id values, the server id and the server-local sequence number
+  // they are saved in 12 bytes inside the base marker like this:
+
+  // 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01 00
+  // -----------------------------------------------
+  // [  type   ] [   server id   ] [  sequence id  ]
+   
+
+  // extract the server id part (
+  *serverId      = ((ptr[0] & 0x00000000FFFFFFFFULL) << 16) | 
+                   ((ptr[1] & 0xFFFF000000000000ULL) >> 48);
+                    
+  // use the 2 lower bytes from tick1 && use all bytes from tick2
+  *sequenceValue = (ptr[1] & 0x0000FFFFFFFFFFFFULL);
+
+  return TRI_ERROR_NO_ERROR;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// @brief checks whether a marker is valid
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -39,6 +39,25 @@
 #include "BasicsC/strings.h"
 
 // -----------------------------------------------------------------------------
+// --SECTION--                                                 private variables
+// -----------------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////////////
+/// @addtogroup VocBase
+/// @{
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief the server's global id
+////////////////////////////////////////////////////////////////////////////////
+
+static TRI_server_id_t ServerId;
+
+////////////////////////////////////////////////////////////////////////////////
+/// @}
+////////////////////////////////////////////////////////////////////////////////
+
+// -----------------------------------------------------------------------------
 // --SECTION--                                                  public functions
 // -----------------------------------------------------------------------------
 
@@ -48,16 +67,31 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief get the global server id
+////////////////////////////////////////////////////////////////////////////////
+
+TRI_server_id_t TRI_GetServerId () {
+  return ServerId;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief establish the global server id
+////////////////////////////////////////////////////////////////////////////////
+
+void TRI_EstablishServerId (const TRI_server_id_t id) {
+  ServerId = id;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// @brief reads server id from file
 ////////////////////////////////////////////////////////////////////////////////
 
-int TRI_ReadServerId (char const* filename, TRI_server_id_t* id) {
+int TRI_ReadServerId (char const* filename) {
   TRI_json_t* json;
   TRI_json_t* idString;
   TRI_server_id_t foundId;
   
   assert(filename != NULL);
-  assert(id != NULL);
 
   if (! TRI_ExistsFile(filename)) {
     return TRI_ERROR_FILE_NOT_FOUND; 
@@ -83,7 +117,7 @@ int TRI_ReadServerId (char const* filename, TRI_server_id_t* id) {
     return TRI_ERROR_INTERNAL;
   }
 
-  *id = foundId;
+  TRI_EstablishServerId(foundId);
   TRI_FreeJson(TRI_UNKNOWN_MEM_ZONE, json);
 
   return TRI_ERROR_NO_ERROR;
@@ -93,7 +127,7 @@ int TRI_ReadServerId (char const* filename, TRI_server_id_t* id) {
 /// @brief writes server id to file
 ////////////////////////////////////////////////////////////////////////////////
 
-int TRI_WriteServerId (char const* filename, const TRI_server_id_t id) {
+int TRI_WriteServerId (char const* filename) {
   TRI_json_t* json;
   char* idString;
   char buffer[32];  
@@ -103,7 +137,6 @@ int TRI_WriteServerId (char const* filename, const TRI_server_id_t id) {
   bool ok;
 
   assert(filename != NULL);
-  assert(id > 0);
 
   // create a json object 
   json = TRI_CreateArrayJson(TRI_UNKNOWN_MEM_ZONE);
@@ -113,7 +146,7 @@ int TRI_WriteServerId (char const* filename, const TRI_server_id_t id) {
     return TRI_ERROR_OUT_OF_MEMORY;
   }
  
-  idString = TRI_StringUInt64((uint64_t) id);
+  idString = TRI_StringUInt64((uint64_t) TRI_GetServerId());
   TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "server-id", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, idString));
   TRI_FreeString(TRI_CORE_MEM_ZONE, idString);
   
@@ -144,12 +177,19 @@ int TRI_WriteServerId (char const* filename, const TRI_server_id_t id) {
 /// TODO: generate a real UUID instead of the 2 random values
 ////////////////////////////////////////////////////////////////////////////////
 
-int TRI_GenerateServerId (const TRI_server_id_t* id) {
+int TRI_GenerateServerId () {
+  uint64_t randomValue;
   uint32_t* value;
   
-  value = (uint32_t*) id;
-  *value++ = TRI_UInt32Random();
-  *value = TRI_UInt32Random();
+  // save two uint32_t values
+  value = (uint32_t*) &randomValue;
+  *(value++) = TRI_UInt32Random();
+  *(value)   = TRI_UInt32Random();
+  
+  // use the lower 6 bytes only
+  randomValue &= 0x0000FFFFFFFFFFFFULL;
+
+  TRI_EstablishServerId((TRI_server_id_t) randomValue);
 
   return TRI_ERROR_NO_ERROR;
 }
