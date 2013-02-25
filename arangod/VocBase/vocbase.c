@@ -165,34 +165,50 @@ static bool EqualKeyCollectionName (TRI_associative_pointer_t* array, void const
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief create a JSON array with collection meta information
 ///
-/// this data is saved whenever a collection is being removed
+/// this data is saved whenever a collection is created or dropped
 ////////////////////////////////////////////////////////////////////////////////
 
-static TRI_json_t* CreateJsonCollection (TRI_vocbase_col_t const* collection) {
+static TRI_json_t* CreateJsonCollection (TRI_vocbase_col_t const* collection,
+                                         const char* const situation) {
   TRI_json_t* json;
+  TRI_json_t* details;
   char* cid;
+  
+  details = TRI_CreateArrayJson(TRI_UNKNOWN_MEM_ZONE);
+  if (details == NULL) {
+    return false;
+  }
+
+  json = TRI_CreateArrayJson(TRI_UNKNOWN_MEM_ZONE);
+  if (json == NULL) {
+    TRI_FreeJson(TRI_UNKNOWN_MEM_ZONE, details);
+    return false;
+  }
+
+  TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, details, "type", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, TRI_TypeNameCollection(collection->_type)));
+  TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, details, "name", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, collection->_name));
+  TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, details, "action", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, situation));
 
   cid = TRI_StringUInt64((uint64_t) collection->_cid);
 
-  json = TRI_CreateArrayJson(TRI_UNKNOWN_MEM_ZONE);
-  if (json != NULL) {
-    TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "name", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, collection->_name));
-    TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "id", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, cid));
-  }
-
+  TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "id", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, cid));
+  TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "type", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, "collection"));
+  TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "details", details);
+    
   TRI_FreeString(TRI_CORE_MEM_ZONE, cid);
 
   return json;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief save removal info for a collection on drop
+/// @brief save info for a collection on drop or create
 ///
-/// removal info will be permanently saved in the "_ids" collection
+/// the info will be permanently saved in the "_ids" collection
 ////////////////////////////////////////////////////////////////////////////////
 
-static bool WriteCollectionRemovalInfo (TRI_vocbase_t* vocbase, 
-                                        TRI_vocbase_col_t const* collection) {
+static bool WriteCollectionMetaInfo (TRI_vocbase_t* vocbase, 
+                                     TRI_vocbase_col_t const* collection,
+                                     const char* const situation) {
   TRI_vocbase_col_t* idCollection;
   TRI_json_t* json;
   TRI_primary_collection_t* primary;
@@ -205,7 +221,7 @@ static bool WriteCollectionRemovalInfo (TRI_vocbase_t* vocbase,
     return false;
   }
 
-  json = CreateJsonCollection(collection);
+  json = CreateJsonCollection(collection, situation);
   if (json == NULL) {
     return false;
   }
@@ -254,7 +270,7 @@ static bool WriteCollectionRemovalInfo (TRI_vocbase_t* vocbase,
 
 static bool UnregisterCollection (TRI_vocbase_t* vocbase, TRI_vocbase_col_t* collection) {
   // write collection removal information to "_ids" collection
-  WriteCollectionRemovalInfo(vocbase, collection);
+  WriteCollectionMetaInfo(vocbase, collection, "drop");
 
   // unlink the collection from the 2 lookup arrays
   TRI_WRITE_LOCK_COLLECTIONS_VOCBASE(vocbase);
@@ -1811,6 +1827,9 @@ TRI_vocbase_col_t* TRI_CreateCollectionVocBase (TRI_vocbase_t* vocbase,
 
 
   TRI_WRITE_UNLOCK_COLLECTIONS_VOCBASE(vocbase);
+  
+  WriteCollectionMetaInfo(vocbase, collection, "create");
+
   return collection;
 }
 
