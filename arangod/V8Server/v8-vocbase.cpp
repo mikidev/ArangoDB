@@ -2852,7 +2852,21 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
   typedef uint64_t voc_did_t;
 
   typedef struct {
-    TRI_df_marker_t base;
+    TRI_voc_size_t _size;                 // 4 bytes, must be supplied
+    TRI_voc_crc_t _crc;                   // 4 bytes, will be generated
+
+    TRI_df_marker_type_t _type;           // 4 bytes, must be supplied
+
+#ifdef TRI_PADDING_32
+    char _padding_df_marker[4];
+#endif
+
+    uint64_t _tick;
+  }
+  base_marker_t_deprecated;
+
+  typedef struct {
+    base_marker_t_deprecated base;
 
     voc_did_t _did;        // this is the tick for a create, but not an update
     TRI_voc_rid_t _rid;    // this is the tick for an create and update
@@ -2874,7 +2888,7 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
   doc_edge_marker_t_deprecated;
 
   typedef struct {
-    TRI_df_marker_t base;
+    base_marker_t_deprecated base;
 
     voc_did_t _did;        // this is the tick for a create, but not an update
     TRI_voc_rid_t _rid;    // this is the tick for an create and update
@@ -2887,7 +2901,9 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
   if (argv.Length() != 0) {
     return scope.Close(v8::ThrowException(TRI_CreateErrorObject(TRI_ERROR_ILLEGAL_OPTION, "usage: upgrade()")));
   }
-  
+
+  const TRI_server_id_t serverId = TRI_GetServerId();
+
   TRI_vocbase_col_t const* collection;
 
   // extract the collection
@@ -3056,10 +3072,8 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
             newMarker._shape = oldMarker->_shape;
             newMarker._offsetKey = newMarkerSize;
             newMarker._offsetJson = newMarkerSize + keyBodySize;
-            
-            newMarker.base._type = TRI_DOC_MARKER_KEY_DOCUMENT;
-            newMarker.base._tick = oldMarker->base._tick;
-            newMarker.base._size = newMarkerSize + keyBodySize + bodySize;
+           
+            TRI_InitMarkerDatafile(&newMarker.base, newMarkerSize + keyBodySize + bodySize, TRI_DOC_MARKER_KEY_DOCUMENT, serverId, TRI_SEQUENCE_VALUE(oldMarker->base._tick));
             TRI_FillCrcKeyMarkerDatafile(df, &newMarker.base, newMarkerSize, keyBody, keyBodySize, body, bodySize);
 
             writeResult = TRI_WRITE(fdout, &newMarker, sizeof(newMarker));
@@ -3122,9 +3136,7 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
             newMarker._toCid = oldMarker->_toCid;
             newMarker._fromCid = oldMarker->_fromCid;
             
-            newMarker.base.base._size = newMarkerSize + keyBodySize + bodySize;
-            newMarker.base.base._type = TRI_DOC_MARKER_KEY_EDGE;
-            newMarker.base.base._tick = oldMarker->base.base._tick;
+            TRI_InitMarkerDatafile(&newMarker.base.base, newMarkerSize + keyBodySize + bodySize, TRI_DOC_MARKER_KEY_EDGE, serverId, TRI_SEQUENCE_VALUE(oldMarker->base.base._tick));
             TRI_FillCrcKeyMarkerDatafile(df, &newMarker.base.base, newMarkerSize, keyBody, keyBodySize, body, bodySize);
 
             writeResult = TRI_WRITE(fdout, &newMarker, newMarkerSize);
@@ -3164,9 +3176,7 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
             newMarker._sid = oldMarker->_sid;
             newMarker._offsetKey = newMarkerSize;
             
-            newMarker.base._size = newMarkerSize + keyBodySize;
-            newMarker.base._type = TRI_DOC_MARKER_KEY_DELETION;
-            newMarker.base._tick = oldMarker->base._tick;
+            TRI_InitMarkerDatafile(&newMarker.base, newMarkerSize + keyBodySize, TRI_DOC_MARKER_KEY_DELETION, serverId, TRI_SEQUENCE_VALUE(oldMarker->base._tick));
             TRI_FillCrcKeyMarkerDatafile(df, &newMarker.base, newMarkerSize, keyBody, keyBodySize, NULL, 0);
 
             writeResult = TRI_WRITE(fdout, &newMarker, newMarkerSize);
@@ -3322,10 +3332,13 @@ static v8::Handle<v8::Value> JS_DatafileScanVocbaseCol (v8::Arguments const& arg
     TRI_df_scan_entry_t* entry = (TRI_df_scan_entry_t*) TRI_AtVector(&scan._entries, i);
 
     v8::Handle<v8::Object> o = v8::Object::New();
+    const string serverId(StringUtils::itoa(entry->_serverId));
+    const string sequenceValue(StringUtils::itoa(entry->_sequenceValue));
 
     o->Set(v8::String::New("position"), v8::Number::New(entry->_position));
     o->Set(v8::String::New("size"), v8::Number::New(entry->_size));
-    o->Set(v8::String::New("tick"), v8::Number::New(entry->_tick));
+    o->Set(v8::String::New("serverId"), v8::String::New(serverId.c_str(), serverId.size()));
+    o->Set(v8::String::New("sequenceValue"), v8::String::New(sequenceValue.c_str(), sequenceValue.size()));
     o->Set(v8::String::New("type"), v8::Number::New((int) entry->_type));
     o->Set(v8::String::New("status"), v8::Number::New((int) entry->_status));
 

@@ -825,7 +825,11 @@ static bool StartupJournalIterator (TRI_df_marker_t const* marker,
                                     void* data, 
                                     TRI_datafile_t* datafile, 
                                     bool journal) {
-  TRI_UpdateGlobalIdNoLockSequence(marker->_tick);
+  TRI_server_id_t serverId;
+  TRI_sequence_value_t sequenceValue;
+
+  TRI_ParseIdMarkerDatafile(marker, &serverId, &sequenceValue);
+  TRI_UpdateGlobalIdNoLockSequence(sequenceValue);
   
   return true;
 }
@@ -2263,7 +2267,8 @@ void TRI_ReleaseCollectionVocBase (TRI_vocbase_t* vocbase, TRI_vocbase_col_t* co
 void TRI_InitialiseVocBase () {
   TRI_InitialiseHashes();
   TRI_InitialiseRandom();
-
+ 
+  TRI_InitialiseServerId();
   TRI_InitialiseGlobalIdSequence();
 
   TRI_GlobalInitStatementListAql();

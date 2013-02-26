@@ -648,9 +648,11 @@ static int UpdateDocument (TRI_doc_operation_context_t* context,
   // .............................................................................
   // update header
   // .............................................................................
-
-  // generate a new tick
-  marker->_rid = marker->base._tick = TRI_NewGlobalIdSequence();
+  
+  // generate a new sequence value for the update marker, so it is different from the
+  // original marker's sequence value
+  marker->_rid = TRI_NewGlobalIdSequence();
+  TRI_UpdateSequenceValueMarkerDatafile(&marker->base, marker->_rid);
 
   // find and select a journal
   primary = context->_collection;
@@ -759,6 +761,8 @@ static int DeleteDocument (TRI_doc_operation_context_t* context,
   TRI_primary_collection_t* primary;
   TRI_document_collection_t* document;
   TRI_doc_datafile_info_t* dfi;
+  TRI_server_id_t serverId;
+  TRI_sequence_value_t sequenceValue;
   TRI_voc_size_t total;
   int res;
 
@@ -779,9 +783,6 @@ static int DeleteDocument (TRI_doc_operation_context_t* context,
   if (res != TRI_ERROR_NO_ERROR) {
     return res;
   }
-
-  // generate a new tick
-  marker->base._tick = TRI_NewGlobalIdSequence();
 
   // find and select a journal
   total = sizeof(TRI_doc_deletion_key_marker_t) + keyBodySize;
@@ -823,7 +824,9 @@ static int DeleteDocument (TRI_doc_operation_context_t* context,
   }
 
   // update immediate indexes
-  DeleteImmediateIndexes(document, header, marker->base._tick);
+  // TODO: pass the marker instead of the sequenceValue
+  TRI_ParseIdMarkerDatafile(&marker->base, &serverId, &sequenceValue);
+  DeleteImmediateIndexes(document, header, sequenceValue);
 
   // wait for sync
   if (context->_sync) {
@@ -1030,25 +1033,6 @@ static void DebugHeaderDocumentCollection (TRI_document_collection_t* collection
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief initialise a document marker with common attributes
-////////////////////////////////////////////////////////////////////////////////
-    
-static void InitDocumentMarker (TRI_doc_document_key_marker_t* marker, 
-                                const TRI_df_marker_type_t type,
-                                TRI_shaped_json_t const* json,
-                                const bool generateRid) {
-  marker->base._type = type; 
-
-  // generate a new tick
-  if (generateRid) {
-    marker->_rid = marker->base._tick = TRI_NewGlobalIdSequence();
-  }
-
-  marker->_sid = 0;
-  marker->_shape = json->_sid;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 /// @brief creates a new document in the collection from shaped json
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1079,9 +1063,12 @@ static int CreateShapedJson (TRI_doc_operation_context_t* context,
     // create a document
     TRI_doc_document_key_marker_t marker;
     TRI_key_generator_t* keyGenerator;
+    TRI_sequence_value_t sequenceValue;
 
-    memset(&marker, 0, sizeof(marker));
-    InitDocumentMarker(&marker, TRI_DOC_MARKER_KEY_DOCUMENT, json, true);
+    sequenceValue = TRI_InitAutoMarkerDatafile(&marker.base, sizeof(TRI_doc_document_key_marker_t), TRI_DOC_MARKER_KEY_DOCUMENT);
+    marker._sid = 0;
+    marker._shape = json->_sid;
+    marker._rid = sequenceValue; 
    
     // create key using key generator
     keyGenerator = (TRI_key_generator_t*) primary->_keyGenerator;
@@ -1120,14 +1107,16 @@ static int CreateShapedJson (TRI_doc_operation_context_t* context,
     TRI_doc_edge_key_marker_t marker;
     TRI_document_edge_t const* edge;
     TRI_key_generator_t* keyGenerator;
+    TRI_sequence_value_t sequenceValue;
     size_t fromSize;
     size_t toSize;
 
     edge = data;
 
-    memset(&marker, 0, sizeof(marker));
-    InitDocumentMarker(&marker.base, TRI_DOC_MARKER_KEY_EDGE, json, true);
-
+    sequenceValue = TRI_InitAutoMarkerDatafile(&marker.base.base, sizeof(TRI_doc_edge_key_marker_t), TRI_DOC_MARKER_KEY_EDGE);
+    marker.base._sid = 0;
+    marker.base._shape = json->_sid;
+    marker.base._rid = sequenceValue;
     marker._fromCid = edge->_fromCid;
     marker._toCid = edge->_toCid;
 
@@ -1238,10 +1227,11 @@ static int UpdateShapedJson (TRI_doc_operation_context_t* context,
     TRI_doc_document_key_marker_t marker;
     TRI_doc_document_key_marker_t const* o;
     o = header->_data;
-            
-    // create an update
-    memset(&marker, 0, sizeof(marker));
-    InitDocumentMarker(&marker, o->base._type, json, false);
+
+    TRI_InitAutoMarkerDatafile(&marker.base, sizeof(TRI_doc_document_key_marker_t), TRI_DOC_MARKER_KEY_DOCUMENT);
+    marker._sid   = 0; 
+    marker._shape = json->_sid;
+    marker._rid   = 0;
     
     keyBody = ((char*) original) + o->_offsetKey;  
     keyBodyLength = o->_offsetJson - o->_offsetKey;
@@ -1249,6 +1239,7 @@ static int UpdateShapedJson (TRI_doc_operation_context_t* context,
     marker._offsetJson = o->_offsetJson;
     marker._offsetKey = o->_offsetKey;
     
+    // adjust size now
     marker.base._size = sizeof(marker) + keyBodyLength + json->_data.length;    
     
     return UpdateDocument(context,
@@ -1269,10 +1260,11 @@ static int UpdateShapedJson (TRI_doc_operation_context_t* context,
     TRI_doc_edge_key_marker_t const* o;
 
     o = header->_data;
-
-    // create an update
-    memset(&marker, 0, sizeof(marker));
-    InitDocumentMarker(&marker.base, o->base.base._type, json, false);
+ 
+    TRI_InitAutoMarkerDatafile(&marker.base.base, sizeof(TRI_doc_edge_key_marker_t), TRI_DOC_MARKER_KEY_EDGE);
+    marker.base._sid   = 0; 
+    marker.base._shape = json->_sid;
+    marker.base._rid   = 0;
 
     marker._fromCid = o->_fromCid;
     marker._toCid = o->_toCid;
@@ -1284,7 +1276,8 @@ static int UpdateShapedJson (TRI_doc_operation_context_t* context,
     marker.base._offsetKey = o->base._offsetKey;
     marker._offsetFromKey = o->_offsetFromKey;
     marker._offsetToKey = o->_offsetToKey;
-    
+   
+    // adjust size now 
     marker.base.base._size = sizeof(marker) + keyBodyLength + json->_data.length;    
     
     return UpdateDocument(context,
@@ -1307,19 +1300,21 @@ static int UpdateShapedJson (TRI_doc_operation_context_t* context,
 static int DeleteShapedJson (TRI_doc_operation_context_t* context,
                              TRI_voc_key_t key) {
   TRI_doc_deletion_key_marker_t marker;
-  TRI_voc_size_t keyBodySize = 0;
-
-  memset(&marker, 0, sizeof(marker));
-  marker.base._type = TRI_DOC_MARKER_KEY_DELETION;
-  marker._sid = 0;
-
+  TRI_voc_size_t keyBodySize;
+  
+  TRI_InitAutoMarkerDatafile(&marker.base, sizeof(TRI_doc_deletion_key_marker_t), TRI_DOC_MARKER_KEY_DELETION);
+  
   if (key) {
     keyBodySize = strlen(key) + 1;
   }
-  
-  marker._offsetKey = sizeof(marker);
+  else {
+    keyBodySize = 0;
+  }
+
+  marker._sid = 0;
+  marker._offsetKey = sizeof(TRI_doc_deletion_key_marker_t);
   marker.base._size = sizeof(marker) + keyBodySize;
-  
+
   return DeleteDocument(context, &marker, key, keyBodySize);
 }
 
@@ -1516,15 +1511,20 @@ static bool OpenIterator (TRI_df_marker_t const* marker, void* data, TRI_datafil
   // deletion
   else if (marker->_type == TRI_DOC_MARKER_KEY_DELETION) {
     TRI_doc_deletion_key_marker_t const* d;
+    TRI_server_id_t serverId;
+    TRI_sequence_value_t sequenceValue;
       
     d = (TRI_doc_deletion_key_marker_t const*) marker;
     key = ((char*) d) + d->_offsetKey;
+
+    TRI_ParseIdMarkerDatafile(&d->base, &serverId, &sequenceValue);
       
-    LOG_TRACE("deletion: fid %lu, key %s, rid %llu, deletion %lu",
+    LOG_TRACE("deletion: fid %lu, key %s, rid %llu, server-id %llu, sequence-value %llu",
               (unsigned long) datafile->_fid,
               (char*) key,
               (unsigned long long) d->_rid,
-              (unsigned long) marker->_tick);
+              (unsigned long long) serverId,
+              (unsigned long long) sequenceValue);
 
     found = TRI_LookupByKeyAssociativePointer(&primary->_primaryIndex, key);
 
@@ -1537,8 +1537,8 @@ static bool OpenIterator (TRI_df_marker_t const* marker, void* data, TRI_datafil
       header = collection->_headers->verify(collection->_headers, header);
 
       header->_rid = d->_rid;
-      header->_validFrom = marker->_tick;
-      header->_validTo   = marker->_tick; // TODO: fix for trx
+      header->_validFrom = sequenceValue;
+      header->_validTo   = sequenceValue; // TODO: fix for trx
       header->_data = 0;
       header->_key = key;
       
@@ -1559,8 +1559,8 @@ static bool OpenIterator (TRI_df_marker_t const* marker, void* data, TRI_datafil
       
       // mark element as deleted
       change.c = found;
-      change.v->_validFrom = marker->_tick;
-      change.v->_validTo   = marker->_tick; // TODO: fix for trx
+      change.v->_validFrom = sequenceValue;
+      change.v->_validTo   = sequenceValue; // TODO: fix for trx
 
       // update the datafile info
       dfi = TRI_FindDatafileInfoPrimaryCollection(primary, found->_fid);

@@ -368,11 +368,8 @@ static TRI_shape_aid_t FindAttributeName (TRI_shaper_t* shaper, char const* name
   }
 
   // create new attribute identifier
-  memset(&marker, 0, sizeof(TRI_df_attribute_marker_t));
-
-  marker.base._type = TRI_DF_MARKER_ATTRIBUTE;
+  TRI_InitAutoMarkerDatafile(&marker.base, sizeof(TRI_df_attribute_marker_t), TRI_DF_MARKER_ATTRIBUTE);
   marker.base._size = sizeof(TRI_df_attribute_marker_t) + n;
-
   marker._aid = s->_nextAid++;
   marker._size = n;
 
@@ -590,9 +587,7 @@ static TRI_shape_t const* FindShape (TRI_shaper_t* shaper, TRI_shape_t* shape) {
   }
 
   // create a new shape marker
-  memset(&marker, 0, sizeof(TRI_df_shape_marker_t));
-
-  marker.base._type = TRI_DF_MARKER_SHAPE;
+  TRI_InitAutoMarkerDatafile(&marker.base, sizeof(TRI_df_shape_marker_t), TRI_DF_MARKER_SHAPE);
   marker.base._size = sizeof(TRI_df_shape_marker_t) + shape->_size;
 
   shape->_sid = s->_nextSid++;

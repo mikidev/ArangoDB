@@ -133,12 +133,7 @@ static bool CreateJournal (TRI_shape_collection_t* collection) {
   }
 
   // create a header
-  memset(&cm, 0, sizeof(cm));
-
-  cm.base._size = sizeof(TRI_col_header_marker_t);
-  cm.base._type = TRI_COL_MARKER_HEADER;
-  cm.base._tick = TRI_NewGlobalIdSequence();
-
+  TRI_InitAutoMarkerDatafile(&cm.base, sizeof(TRI_col_header_marker_t), TRI_COL_MARKER_HEADER);
   cm._cid = collection->base._info._cid;
 
   TRI_FillCrcMarkerDatafile(journal, &cm.base, sizeof(cm), 0, 0, 0, 0);
@@ -415,9 +410,6 @@ int TRI_WriteShapeCollection (TRI_shape_collection_t* collection,
                               TRI_df_marker_t** result) {
   TRI_datafile_t* journal;
   int res;
-
-  // generate a new tick
-  marker->_tick = TRI_NewGlobalIdSequence();
 
   // lock the collection
   TRI_LockMutex(&collection->_lock);

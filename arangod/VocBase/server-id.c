@@ -67,6 +67,14 @@ static TRI_server_id_t ServerId;
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief initialise the global server id to 0 on startup
+////////////////////////////////////////////////////////////////////////////////
+
+void TRI_InitialiseServerId () {
+  memset(&ServerId, 0, sizeof(TRI_server_id_t));
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// @brief get the global server id
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -145,8 +153,10 @@ int TRI_WriteServerId (char const* filename) {
     LOG_ERROR("cannot save server id in file '%s': out of memory", filename);
     return TRI_ERROR_OUT_OF_MEMORY;
   }
+
+  assert(ServerId != 0);
  
-  idString = TRI_StringUInt64((uint64_t) TRI_GetServerId());
+  idString = TRI_StringUInt64((uint64_t) ServerId);
   TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "server-id", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, idString));
   TRI_FreeString(TRI_CORE_MEM_ZONE, idString);
   
@@ -178,7 +188,7 @@ int TRI_WriteServerId (char const* filename) {
 ////////////////////////////////////////////////////////////////////////////////
 
 int TRI_GenerateServerId () {
-  uint64_t randomValue;
+  uint64_t randomValue = 0x0ULL;
   uint32_t* value;
   
   // save two uint32_t values

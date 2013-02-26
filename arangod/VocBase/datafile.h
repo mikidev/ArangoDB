@@ -116,6 +116,12 @@ extern "C" {
 #define TRI_DF_BLOCK_ALIGNMENT  (8)
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief maximum size of a marker, in bytes
+////////////////////////////////////////////////////////////////////////////////
+    
+#define TRI_DF_MARKER_MAX_SIZE  (256 * 1024 * 1024)
+
+////////////////////////////////////////////////////////////////////////////////
 /// @}
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -216,13 +222,13 @@ TRI_df_scan_t;
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef struct TRI_df_scan_entry_s {
-  TRI_voc_size_t _position;
-  TRI_voc_size_t _size;    
-  TRI_sequence_value_t _tick;
+  TRI_voc_size_t       _position;
+  TRI_voc_size_t       _size;    
+  TRI_server_id_t      _serverId;
+  TRI_sequence_value_t _sequenceValue;
 
   TRI_df_marker_type_t _type;
-
-  uint32_t _status;
+  uint32_t             _status;
 }
 TRI_df_scan_entry_t;
 
@@ -307,16 +313,12 @@ TRI_datafile_t;
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef struct TRI_df_marker_s {
-  TRI_voc_size_t _size;                 // 4 bytes, must be supplied
-  TRI_voc_crc_t  _crc;                  // 4 bytes, will be generated
+  TRI_voc_size_t         _size;       // 4 bytes, must be supplied
+  TRI_voc_crc_t          _crc;        // 4 bytes, will be generated
 
-  TRI_df_marker_type_t _type;           // 4 bytes, must be supplied
+  TRI_df_marker_type_t   _type;       // 4 bytes, must be supplied
 
-#ifdef TRI_PADDING_32
-  char _padding_df_marker[4];
-#endif
-
-  TRI_sequence_value_t _tick;           // 8 bytes, will be generated
+  uint8_t                _uuid[12];   // 12 bytes
 }
 TRI_df_marker_t;
 
@@ -494,24 +496,50 @@ void TRI_FreeDatafile (TRI_datafile_t*);
 #define TRI_DF_ALIGN_BLOCK(a) ((((a) + TRI_DF_BLOCK_ALIGNMENT - 1) / TRI_DF_BLOCK_ALIGNMENT) * TRI_DF_BLOCK_ALIGNMENT)
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief update the sequence value in an existing marker
+////////////////////////////////////////////////////////////////////////////////
+
+int TRI_UpdateSequenceValueMarkerDatafile (TRI_df_marker_t* const,
+                                           const TRI_sequence_value_t);
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief initialise the base parts of the given marker
+////////////////////////////////////////////////////////////////////////////////
+
+int TRI_InitMarkerDatafile (TRI_df_marker_t* const,
+                            const TRI_voc_size_t,
+                            const TRI_df_marker_type_e,
+                            const TRI_server_id_t,
+                            const TRI_sequence_value_t);
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief initialise the base parts of the given marker
+/// this will auto-fill values such as server id and sequence value
+////////////////////////////////////////////////////////////////////////////////
+
+TRI_sequence_value_t TRI_InitAutoMarkerDatafile (TRI_df_marker_t* const,
+                                                 const TRI_voc_size_t,
+                                                 const TRI_df_marker_type_e);
+
+////////////////////////////////////////////////////////////////////////////////
 /// @brief read the marker tick information into the server & local id parts
 ////////////////////////////////////////////////////////////////////////////////
 
-bool TRI_ParseIdMarkerDatafile (const TRI_df_marker_t* const,
-                                TRI_server_id_t*,
-                                TRI_sequence_value_t*);
+int TRI_ParseIdMarkerDatafile (const TRI_df_marker_t* const,
+                               TRI_server_id_t*,
+                               TRI_sequence_value_t*);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief checks whether a marker is valid
 ////////////////////////////////////////////////////////////////////////////////
 
-bool TRI_IsValidMarkerDatafile (TRI_df_marker_t* const marker);
+bool TRI_IsValidMarkerDatafile (TRI_df_marker_t* const);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief checks a CRC of a marker
 ////////////////////////////////////////////////////////////////////////////////
 
-bool TRI_CheckCrcMarkerDatafile (TRI_df_marker_t const* marker);
+bool TRI_CheckCrcMarkerDatafile (TRI_df_marker_t const*);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief creates a CRC and writes that into the header

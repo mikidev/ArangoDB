@@ -408,12 +408,19 @@ static TRI_df_scan_t ScanDatafile (TRI_datafile_t const* datafile) {
     memset(&entry, 0, sizeof(entry));
 
     entry._position = ptr - datafile->_data;
-    entry._size = marker->_size;
-    entry._tick = marker->_tick;
-    entry._type = marker->_type;
-    entry._status = 1;
+    entry._size     = marker->_size;
+    entry._type     = marker->_type;
+    entry._status   = 1;
 
-    if (marker->_size == 0 && marker->_crc == 0 && marker->_type == 0 && marker->_tick == 0) {
+    // read server id & sequence value from marker
+    TRI_ParseIdMarkerDatafile(marker, &entry._serverId, &entry._sequenceValue);
+
+    if (marker->_size == 0 && 
+        marker->_crc == 0 && 
+        marker->_type == 0 && 
+        entry._serverId == 0 &&
+        entry._sequenceValue == 0) {
+      // marker is all-zero
       entry._status = 2;
 
       scan._endPosition = currentSize;
@@ -501,6 +508,8 @@ static bool CheckDatafile (TRI_datafile_t* datafile) {
 
   while (ptr < end) {
     TRI_df_marker_t* marker = (TRI_df_marker_t*) ptr;
+    TRI_server_id_t serverId;
+    TRI_sequence_value_t sequenceValue;
     bool ok;
     size_t size;
 
@@ -512,7 +521,14 @@ static bool CheckDatafile (TRI_datafile_t* datafile) {
               (unsigned int) marker->_type);
 #endif
 
-    if (marker->_size == 0 && marker->_crc == 0 && marker->_type == 0 && marker->_tick == 0) {
+    TRI_ParseIdMarkerDatafile(marker, &serverId, &sequenceValue);
+
+    if (marker->_size == 0 && 
+        marker->_crc == 0 && 
+        marker->_type == 0 && 
+        serverId == 0 &&
+        sequenceValue == 0) {
+      // marker is all-zero
       LOG_DEBUG("reached end of datafile '%s' data, current size %lu", 
                 datafile->getName(datafile), 
                 (unsigned long) currentSize);
@@ -573,7 +589,7 @@ static bool CheckDatafile (TRI_datafile_t* datafile) {
       return false;
     }
 
-    TRI_UpdateGlobalIdSequence(marker->_tick);
+    TRI_UpdateGlobalIdSequence(sequenceValue);
 
     size = TRI_DF_ALIGN_BLOCK(marker->_size);
     currentSize += size;
@@ -792,12 +808,8 @@ TRI_datafile_t* TRI_CreateDatafile (char const* filename,
 
   datafile->_state = TRI_DF_STATE_WRITE;
   
-  // create the header
-  memset(&header, 0, sizeof(TRI_df_header_marker_t));
-
-  header.base._size   = sizeof(TRI_df_header_marker_t);
-  header.base._tick   = TRI_NewGlobalIdSequence();
-  header.base._type   = TRI_DF_MARKER_HEADER;
+  // init header base
+  TRI_InitAutoMarkerDatafile(&header.base, sizeof(TRI_df_header_marker_t), TRI_DF_MARKER_HEADER);
 
   header._version     = TRI_DF_VERSION;
   header._maximalSize = maximalSize;
@@ -996,13 +1008,92 @@ void TRI_FreeDatafile (TRI_datafile_t* datafile) {
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief update the sequence value in an existing marker
+////////////////////////////////////////////////////////////////////////////////
+
+int TRI_UpdateSequenceValueMarkerDatafile (TRI_df_marker_t* const marker,
+                                           const TRI_sequence_value_t sequenceValue) {
+  uint8_t* ptr = (uint8_t*) marker->_uuid;
+
+  ptr += 6;
+  // sequence value
+  *ptr++ = (uint8_t) ((sequenceValue & 0xFF0000000000ULL) >> 40); 
+  *ptr++ = (uint8_t) ((sequenceValue & 0x00FF00000000ULL) >> 32); 
+  *ptr++ = (uint8_t) ((sequenceValue & 0x0000FF000000ULL) >> 24); 
+  *ptr++ = (uint8_t) ((sequenceValue & 0x000000FF0000ULL) >> 16); 
+  *ptr++ = (uint8_t) ((sequenceValue & 0x00000000FF00ULL) >> 8); 
+  *ptr   = (uint8_t) ((sequenceValue & 0x0000000000FFULL)); 
+ 
+  return TRI_ERROR_NO_ERROR;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief initialise the base parts of the given marker
+////////////////////////////////////////////////////////////////////////////////
+
+int TRI_InitMarkerDatafile (TRI_df_marker_t* const marker,
+                            const TRI_voc_size_t size,
+                            const TRI_df_marker_type_e type,
+                            const TRI_server_id_t serverId,
+                            const TRI_sequence_value_t sequenceValue) {
+  uint8_t* ptr;
+
+  marker->_size = size;
+  marker->_crc  = 0;
+  marker->_type = type;
+
+  ptr = (uint8_t*) marker->_uuid;
+
+  // server-id
+  *ptr++ = (uint8_t) ((serverId & 0xFF0000000000ULL) >> 40); 
+  *ptr++ = (uint8_t) ((serverId & 0x00FF00000000ULL) >> 32); 
+  *ptr++ = (uint8_t) ((serverId & 0x0000FF000000ULL) >> 24); 
+  *ptr++ = (uint8_t) ((serverId & 0x000000FF0000ULL) >> 16); 
+  *ptr++ = (uint8_t) ((serverId & 0x00000000FF00ULL) >> 8); 
+  *ptr++ = (uint8_t) ((serverId & 0x0000000000FFULL) >> 0); 
+
+  // sequence value
+  *ptr++ = (uint8_t) ((sequenceValue & 0xFF0000000000ULL) >> 40); 
+  *ptr++ = (uint8_t) ((sequenceValue & 0x00FF00000000ULL) >> 32); 
+  *ptr++ = (uint8_t) ((sequenceValue & 0x0000FF000000ULL) >> 24); 
+  *ptr++ = (uint8_t) ((sequenceValue & 0x000000FF0000ULL) >> 16); 
+  *ptr++ = (uint8_t) ((sequenceValue & 0x00000000FF00ULL) >> 8); 
+  *ptr   = (uint8_t) ((sequenceValue & 0x0000000000FFULL)); 
+
+  return TRI_ERROR_NO_ERROR;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief initialise the base parts of the given marker
+/// this will auto-fill values such as server id and sequence value
+////////////////////////////////////////////////////////////////////////////////
+
+TRI_sequence_value_t TRI_InitAutoMarkerDatafile (TRI_df_marker_t* const marker,
+                                                 const TRI_voc_size_t size,
+                                                 const TRI_df_marker_type_e type) {
+
+  const TRI_server_id_t serverId           = TRI_GetServerId();
+  const TRI_sequence_value_t sequenceValue = TRI_NewGlobalIdSequence();
+  
+  // fill the structure with all-zeros
+  memset(marker, 0, size);
+
+  TRI_InitMarkerDatafile(marker, size, type, serverId, sequenceValue);
+
+  // printf("initialised a marker of type %d, size %llu. serverid %llu sequence %llu\n", (int) type, (unsigned long long) size, (unsigned long long) serverId, (unsigned long long) sequenceValue);
+
+  return sequenceValue;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// @brief read the marker tick information into the server & local id parts
 ////////////////////////////////////////////////////////////////////////////////
 
-bool TRI_ParseIdMarkerDatafile (const TRI_df_marker_t* const marker,
-                                TRI_server_id_t* serverId,
-                                TRI_sequence_value_t* sequenceValue) {
-  const uint64_t* ptr = (uint64_t*) &marker->_type;
+int TRI_ParseIdMarkerDatafile (const TRI_df_marker_t* const marker,
+                               TRI_server_id_t* serverId,
+                               TRI_sequence_value_t* sequenceValue) {
+  uint64_t value;
+  uint8_t* ptr = (uint8_t*) marker->_uuid;
 
   // there are two id values, the server id and the server-local sequence number
   // they are saved in 12 bytes inside the base marker like this:
@@ -1010,14 +1101,28 @@ bool TRI_ParseIdMarkerDatafile (const TRI_df_marker_t* const marker,
   // 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01 00
   // -----------------------------------------------
   // [  type   ] [   server id   ] [  sequence id  ]
-   
+  
+  // server-id
+  value = 0;
+  value |= (((uint64_t) *ptr++) << 40); 
+  value |= (((uint64_t) *ptr++) << 32); 
+  value |= (((uint64_t) *ptr++) << 24); 
+  value |= (((uint64_t) *ptr++) << 16); 
+  value |= (((uint64_t) *ptr++) << 8); 
+  value |= (((uint64_t) *ptr++)); 
+  *serverId = value;
+  
+  // sequence-value
+  value = 0;
+  value |= (((uint64_t) *ptr++) << 40); 
+  value |= (((uint64_t) *ptr++) << 32); 
+  value |= (((uint64_t) *ptr++) << 24); 
+  value |= (((uint64_t) *ptr++) << 16); 
+  value |= (((uint64_t) *ptr++) << 8); 
+  value |= (((uint64_t) *ptr)); 
+  *sequenceValue = value;
 
-  // extract the server id part (
-  *serverId      = ((ptr[0] & 0x00000000FFFFFFFFULL) << 16) | 
-                   ((ptr[1] & 0xFFFF000000000000ULL) >> 48);
-                    
-  // use the 2 lower bytes from tick1 && use all bytes from tick2
-  *sequenceValue = (ptr[1] & 0x0000FFFFFFFFFFFFULL);
+  // printf("found a marker with type %d serverid %llu sequence %llu\n", (int) marker->_type, (unsigned long long) *serverId, (unsigned long long) *sequenceValue);
 
   return TRI_ERROR_NO_ERROR;
 }
@@ -1045,7 +1150,7 @@ bool TRI_IsValidMarkerDatafile (TRI_df_marker_t* const marker) {
     return false;
   }
 
-  if (marker->_size >= (TRI_voc_size_t) (256 * 1024 * 1024)) {
+  if (marker->_size >= (TRI_voc_size_t) (TRI_DF_MARKER_MAX_SIZE)) {
     // a single marker bigger than 256 MB seems unreasonable
     // note: this is an arbitrary limit
     return false;
@@ -1475,12 +1580,8 @@ int TRI_SealDatafile (TRI_datafile_t* datafile) {
     return TRI_set_errno(TRI_ERROR_ARANGO_DATAFILE_SEALED);
   }
 
-  // create the footer
-  memset(&footer, 0, sizeof(TRI_df_footer_marker_t));
-
-  footer.base._size = sizeof(TRI_df_footer_marker_t);
-  footer.base._tick = TRI_NewGlobalIdSequence();
-  footer.base._type = TRI_DF_MARKER_FOOTER;
+  // init footer base
+  TRI_InitAutoMarkerDatafile(&footer.base, sizeof(TRI_df_footer_marker_t), TRI_DF_MARKER_FOOTER);
 
   // create CRC
   TRI_FillCrcMarkerDatafile(datafile, &footer.base, sizeof(TRI_df_footer_marker_t), 0, 0, 0, 0);

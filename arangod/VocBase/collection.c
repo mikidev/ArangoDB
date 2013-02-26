@@ -243,7 +243,7 @@ static bool CheckCollection (TRI_collection_t* collection) {
           stop = true;
 
           LOG_ERROR("cannot open datafile '%s': %s", filename, TRI_last_error());
-
+          TRI_FreeString(TRI_CORE_MEM_ZONE, filename);
           break;
         }
 
@@ -747,10 +747,15 @@ void TRI_FreeCollection (TRI_collection_t* collection) {
 
 void TRI_UpdateRevisionCollection (TRI_collection_t* collection,
                                    const TRI_df_marker_t* const marker) {
-  TRI_col_info_t* info = &collection->_info;
+  TRI_col_info_t* info;
+  TRI_server_id_t serverId;
+  TRI_sequence_value_t sequenceValue;
+   
+  info = &collection->_info;
 
-  if (marker->_tick > info->_rid) {
-    info->_rid = marker->_tick;
+  TRI_ParseIdMarkerDatafile(marker, &serverId, &sequenceValue);
+  if (sequenceValue > info->_rid) {
+    info->_rid = sequenceValue;
   }
 }
 
@@ -1214,6 +1219,7 @@ bool TRI_IterateJournalsCollection (const char* const path,
       if (datafile != NULL) {
         TRI_IterateDatafile(datafile, iterator, NULL, true);  
         TRI_CloseDatafile(datafile);
+        TRI_FreeDatafile(datafile);
       }
     }
   }
