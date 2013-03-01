@@ -29,7 +29,7 @@ As the GCC uses a different padding for C structure under 32bit systems compared
 to 64bit systems, the 1.1 datafiles were not interchangeable. 1.2 fixes this
 problem.
 
-There is however one cave-at: If you already installed 1.2.beta1 on a 32bit
+There is however one caveat: If you already installed 1.2.beta1 on a 32bit
 system, the upgrade will no longer worker. In this case you need to export the
 data first, upgrade ArangoDB, and import the data again. There is no problem, if
 you upgrade from 1.1 to 1.2.beta2.
@@ -367,6 +367,11 @@ will instead return the standard error code `1203` (```Collection not found```),
 which is also returned by other parts of ArangoDB in case a non-existing collection
 is accessed.
 
+When a collection was created with a name that was already in use for another 
+collection, ArangoDB 1.1 returned an error code `1207` (```Duplicate name```) with
+an HTTP status code of `400` (```Bad request```). For this case, the HTTP status
+code has been changed to HTTP `409` (```Conflict```) in ArangoDB 1.2.
+
 Changes in available global variables and functions
 ===================================================
 
@@ -430,10 +435,18 @@ there was no need to keep the `edges` variable any longer.
 
 ### arangoimp
 
-The parameter `--reuse-ids` for `arangoimp` was removed. This parameter was a
+The parameter `--reuse-ids` for _arangoimp_ was removed. This parameter was a
 workaround in ArangoDB 1.1 to re-import documents with a specific document id.
 This is not necessary in ArangoDB 1.2 as this version provides user-defined
 key values which can and should be used instead.
+
+The separator parameter `--separator` for _arangoimp_ was changed in 1.2 to
+allow exactly one separator character. In previous versions, separators longer
+than one character were supported.
+
+The parameter `--eol` for _arangoimp_ was also removed in 1.2. 
+Line endings are now detected automatically by _arangoimp_ as long as the 
+standard line endings CRLF (Windows) or LF (Unix) are used.
 
 ### arango-password
 

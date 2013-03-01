@@ -21,19 +21,12 @@ DOXYGEN_TOC = \
 ################################################################################
 
 dist_man_MANS += \
+	Documentation/man/man1/arangob.1 \
 	Documentation/man/man1/arangoimp.1 \
 	Documentation/man/man1/arangosh.1 \
         Documentation/man/man8/rcarangod.8 \
         Documentation/man/man8/arangod.8 \
         Documentation/man/man8/arango-dfdb.8 
-
-
-if ENABLE_ARANGOB        
-
-dist_man_MANS += \
-	Documentation/man/man1/arangob.1 
-
-endif
 
 ################################################################################
 ### @brief JavaScript files
@@ -307,6 +300,7 @@ examples:
 		--arangosh-setup @srcdir@/Documentation/Examples/setup-arangosh.js \
 		@srcdir@/Documentation/DbaManual/*.md \
 		@srcdir@/Documentation/UserManual/*.md \
+		@srcdir@/arangod/RestHandler/*.cpp \
 		> /tmp/arangosh.examples
 
 	$(MAKE) start-server PID=$(PID) SERVER_START="--server.endpoint unix://$(VOCDIR)/arango.sock --server.disable-authentication true" PROTO=unix

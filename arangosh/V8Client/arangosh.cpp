@@ -110,6 +110,12 @@ static JSLoader StartupLoader;
 static string StartupModules = "";
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief path for Node modules files
+////////////////////////////////////////////////////////////////////////////////
+
+static string StartupNodeModules = "";
+
+////////////////////////////////////////////////////////////////////////////////
 /// @brief path for JavaScript bootstrap files
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -427,6 +433,7 @@ static void ParseProgramOptions (int argc, char* argv[]) {
     ("javascript.execute", &ExecuteScripts, "execute Javascript code from file")
     ("javascript.check", &CheckScripts, "syntax check code Javascript code from file")
     ("javascript.modules-path", &StartupModules, "one or more directories separated by cola")
+    ("javascript.package-path", &StartupNodeModules, "one or more directories separated by cola")
     ("javascript.startup-directory", &StartupPath, "startup paths containing the JavaScript files; multiple directories can be separated by cola")
     ("javascript.unit-tests", &UnitTests, "do not start as shell, run unit tests instead")
     ("jslint", &JsLint, "do not start as shell, run jslint instead")
@@ -551,10 +558,10 @@ static v8::Handle<v8::Value> ClientConnection_ConstructorCallback (v8::Arguments
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ClientConnection method "httpGet"
+/// @brief ClientConnection method "GET" helper
 ////////////////////////////////////////////////////////////////////////////////
 
-static v8::Handle<v8::Value> ClientConnection_httpGet (v8::Arguments const& argv) {
+static v8::Handle<v8::Value> ClientConnection_httpGetAny (v8::Arguments const& argv, bool raw) {
   v8::HandleScope scope;
 
   // get the connection
@@ -578,14 +585,30 @@ static v8::Handle<v8::Value> ClientConnection_httpGet (v8::Arguments const& argv
     objectToMap(headerFields, argv[1]);
   }
 
-  return scope.Close(connection->getData(*url, headerFields));
+  return scope.Close(connection->getData(*url, headerFields, raw));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ClientConnection method "httpHead"
+/// @brief ClientConnection method "GET"
 ////////////////////////////////////////////////////////////////////////////////
 
-static v8::Handle<v8::Value> ClientConnection_httpHead (v8::Arguments const& argv) {
+static v8::Handle<v8::Value> ClientConnection_httpGet (v8::Arguments const& argv) {
+  return ClientConnection_httpGetAny(argv, false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "GET_RAW"
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpGetRaw (v8::Arguments const& argv) {
+  return ClientConnection_httpGetAny(argv, true);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "HEAD" helper
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpHeadAny (v8::Arguments const& argv, bool raw) {
   v8::HandleScope scope;
 
   // get the connection
@@ -609,14 +632,30 @@ static v8::Handle<v8::Value> ClientConnection_httpHead (v8::Arguments const& arg
     objectToMap(headerFields, argv[1]);
   }
 
-  return scope.Close(connection->headData(*url, headerFields));
+  return scope.Close(connection->headData(*url, headerFields, raw));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ClientConnection method "httpDelete"
+/// @brief ClientConnection method "HEAD"
 ////////////////////////////////////////////////////////////////////////////////
 
-static v8::Handle<v8::Value> ClientConnection_httpDelete (v8::Arguments const& argv) {
+static v8::Handle<v8::Value> ClientConnection_httpHead (v8::Arguments const& argv) {
+  return ClientConnection_httpHeadAny(argv, false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "HEAD_RAW"
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpHeadRaw (v8::Arguments const& argv) {
+  return ClientConnection_httpHeadAny(argv, true);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "DELETE" helper
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpDeleteAny (v8::Arguments const& argv, bool raw) {
   v8::HandleScope scope;
 
   // get the connection
@@ -639,14 +678,30 @@ static v8::Handle<v8::Value> ClientConnection_httpDelete (v8::Arguments const& a
     objectToMap(headerFields, argv[1]);
   }
 
-  return scope.Close(connection->deleteData(*url, headerFields));
+  return scope.Close(connection->deleteData(*url, headerFields, raw));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ClientConnection method "httpOptions"
+/// @brief ClientConnection method "DELETE"
 ////////////////////////////////////////////////////////////////////////////////
 
-static v8::Handle<v8::Value> ClientConnection_httpOptions (v8::Arguments const& argv) {
+static v8::Handle<v8::Value> ClientConnection_httpDelete (v8::Arguments const& argv) {
+  return ClientConnection_httpDeleteAny(argv, false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "DELETE_RAW"
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpDeleteRaw (v8::Arguments const& argv) {
+  return ClientConnection_httpDeleteAny(argv, true);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "OPTIONS" helper
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpOptionsAny (v8::Arguments const& argv, bool raw) {
   v8::HandleScope scope;
   
   // get the connection
@@ -670,14 +725,30 @@ static v8::Handle<v8::Value> ClientConnection_httpOptions (v8::Arguments const& 
     objectToMap(headerFields, argv[2]);
   }
 
-  return scope.Close(connection->optionsData(*url, *body, headerFields));
+  return scope.Close(connection->optionsData(*url, *body, headerFields, raw));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ClientConnection method "httpPost"
+/// @brief ClientConnection method "OPTIONS"
 ////////////////////////////////////////////////////////////////////////////////
 
-static v8::Handle<v8::Value> ClientConnection_httpPost (v8::Arguments const& argv) {
+static v8::Handle<v8::Value> ClientConnection_httpOptions (v8::Arguments const& argv) {
+  return ClientConnection_httpOptionsAny(argv, false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "OPTIONS_RAW"
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpOptionsRaw (v8::Arguments const& argv) {
+  return ClientConnection_httpOptionsAny(argv, true);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "POST" helper
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpPostAny (v8::Arguments const& argv, bool raw) {
   v8::HandleScope scope;
 
   // get the connection
@@ -701,14 +772,30 @@ static v8::Handle<v8::Value> ClientConnection_httpPost (v8::Arguments const& arg
     objectToMap(headerFields, argv[2]);
   }
 
-  return scope.Close(connection->postData(*url, *body, headerFields));
+  return scope.Close(connection->postData(*url, *body, headerFields, raw));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ClientConnection method "httpPut"
+/// @brief ClientConnection method "POST"
 ////////////////////////////////////////////////////////////////////////////////
 
-static v8::Handle<v8::Value> ClientConnection_httpPut (v8::Arguments const& argv) {
+static v8::Handle<v8::Value> ClientConnection_httpPost (v8::Arguments const& argv) {
+  return ClientConnection_httpPostAny(argv, false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "POST_RAW"
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpPostRaw (v8::Arguments const& argv) {
+  return ClientConnection_httpPostAny(argv, true);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "PUT" helper
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpPutAny (v8::Arguments const& argv, bool raw) {
   v8::HandleScope scope;
 
   // get the connection
@@ -732,14 +819,30 @@ static v8::Handle<v8::Value> ClientConnection_httpPut (v8::Arguments const& argv
     objectToMap(headerFields, argv[2]);
   }
 
-  return scope.Close(connection->putData(*url, *body, headerFields));
+  return scope.Close(connection->putData(*url, *body, headerFields, raw));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief ClientConnection method "httpPatch"
+/// @brief ClientConnection method "PUT"
 ////////////////////////////////////////////////////////////////////////////////
 
-static v8::Handle<v8::Value> ClientConnection_httpPatch (v8::Arguments const& argv) {
+static v8::Handle<v8::Value> ClientConnection_httpPut (v8::Arguments const& argv) {
+  return ClientConnection_httpPutAny(argv, false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "PUT_RAW"
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpPutRaw (v8::Arguments const& argv) {
+  return ClientConnection_httpPutAny(argv, true);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "PATCH" helper
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpPatchAny (v8::Arguments const& argv, bool raw) {
   v8::HandleScope scope;
 
   // get the connection
@@ -763,7 +866,23 @@ static v8::Handle<v8::Value> ClientConnection_httpPatch (v8::Arguments const& ar
     objectToMap(headerFields, argv[2]);
   }
 
-  return scope.Close(connection->patchData(*url, *body, headerFields));
+  return scope.Close(connection->patchData(*url, *body, headerFields, raw));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "PATCH"
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpPatch (v8::Arguments const& argv) {
+  return ClientConnection_httpPatchAny(argv, false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief ClientConnection method "PATCH_RAW"
+////////////////////////////////////////////////////////////////////////////////
+
+static v8::Handle<v8::Value> ClientConnection_httpPatchRaw (v8::Arguments const& argv) {
+  return ClientConnection_httpPatchAny(argv, true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1283,7 +1402,7 @@ int main (int argc, char* argv[]) {
                          v8::FunctionTemplate::New(JS_PagerOutput)->GetFunction(),
                          v8::ReadOnly);
   
-  TRI_InitV8Utils(context, StartupModules);
+  TRI_InitV8Utils(context, StartupModules, StartupNodeModules);
   TRI_InitV8Shell(context);
 
   // reset the prompt error flag (will determine prompt colors)
@@ -1299,13 +1418,20 @@ int main (int argc, char* argv[]) {
 
     v8::Handle<v8::ObjectTemplate> connection_proto = connection_templ->PrototypeTemplate();
     
-    connection_proto->Set("GET", v8::FunctionTemplate::New(ClientConnection_httpGet));
-    connection_proto->Set("HEAD", v8::FunctionTemplate::New(ClientConnection_httpHead));
-    connection_proto->Set("POST", v8::FunctionTemplate::New(ClientConnection_httpPost));
     connection_proto->Set("DELETE", v8::FunctionTemplate::New(ClientConnection_httpDelete));
-    connection_proto->Set("PUT", v8::FunctionTemplate::New(ClientConnection_httpPut));
+    connection_proto->Set("DELETE_RAW", v8::FunctionTemplate::New(ClientConnection_httpDeleteRaw));
+    connection_proto->Set("GET", v8::FunctionTemplate::New(ClientConnection_httpGet));
+    connection_proto->Set("GET_RAW", v8::FunctionTemplate::New(ClientConnection_httpGetRaw));
+    connection_proto->Set("HEAD", v8::FunctionTemplate::New(ClientConnection_httpHead));
+    connection_proto->Set("HEAD_RAW", v8::FunctionTemplate::New(ClientConnection_httpHeadRaw));
     connection_proto->Set("OPTIONS", v8::FunctionTemplate::New(ClientConnection_httpOptions));
+    connection_proto->Set("OPTIONS_RAW", v8::FunctionTemplate::New(ClientConnection_httpOptionsRaw));
     connection_proto->Set("PATCH", v8::FunctionTemplate::New(ClientConnection_httpPatch));
+    connection_proto->Set("PATCH_RAW", v8::FunctionTemplate::New(ClientConnection_httpPatchRaw));
+    connection_proto->Set("POST", v8::FunctionTemplate::New(ClientConnection_httpPost));
+    connection_proto->Set("POST_RAW", v8::FunctionTemplate::New(ClientConnection_httpPostRaw));
+    connection_proto->Set("PUT", v8::FunctionTemplate::New(ClientConnection_httpPut));
+    connection_proto->Set("PUT_RAW", v8::FunctionTemplate::New(ClientConnection_httpPutRaw));
     connection_proto->Set("lastHttpReturnCode", v8::FunctionTemplate::New(ClientConnection_lastHttpReturnCode));
     connection_proto->Set("lastErrorMessage", v8::FunctionTemplate::New(ClientConnection_lastErrorMessage));
     connection_proto->Set("isConnected", v8::FunctionTemplate::New(ClientConnection_isConnected));

@@ -12,6 +12,12 @@ The most convenient method to import a lot of data into ArangoDB is to use the
 `arangoimp` command-line tool. It allows you to import data records from a file
 into an existing database collection.
 
+It is possible to import document keys with the documents using the `_key`
+attribute. When importing into an edge collection, it is mandatory that all
+imported documents have the `_from` and `_to` attributes, and that they contain
+valid references.
+
+
 Let's assume you want to import user records into an existing collection named
 "users" on the server.
 
@@ -46,7 +52,8 @@ specify a password, you will be prompted for one.
 
 Note that the collection (`users` in this case) must already exist or the import
 will fail. If you want to create a new collection with the import data, you need
-to specify the --create-collection option.
+to specify the `--create-collection` option. Note that it is only possible to 
+create a document collection using the `--create-collection` flag.
 
     ./arangoimp --file "data.json" --type json --collection "users" --create-collection true
 
@@ -84,9 +91,8 @@ The command line to execute the import then is:
     arangoimp --file "data.csv" --type csv --collection "users"
 
 Note that the quote and separator characters can be adjusted via the
-`--quote` and `--separator` arguments when invoking _arangoimp_.  It
-is also possible to change the end-of-line character from the default value of
-`\n` to another value using the `--eol` argument.
+`--quote` and `--separator` arguments when invoking _arangoimp_.  The importer
+supports Windows (CRLF) and Unix (LF) line breaks.
 
 Importing TSV Data {#ImpManualBasicsTsv}
 ========================================
@@ -100,9 +106,8 @@ As with CSV, the first line in the TSV file must contain the attribute names,
 and all lines must have an identical number of values.
 
 If a different separator character or string should be used, it can be specified
-with the `--separator` argument. The end-of-line character can be adjusted
-using the `--eol` argument.
+with the `--separator` argument. 
 
 An example command line to execute the TSV import is:
 
-    arangoimp --file "data.tsv" --type tsv --collection "users" --eol "\r\n"
+    arangoimp --file "data.tsv" --type tsv --collection "users" 
