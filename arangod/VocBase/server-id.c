@@ -110,7 +110,7 @@ int TRI_ReadServerId (char const* filename) {
     return TRI_ERROR_INTERNAL; 
   }
 
-  idString = TRI_LookupArrayJson(json, "server-id"); 
+  idString = TRI_LookupArrayJson(json, "serverId"); 
 
   if (idString == NULL || idString->_type != TRI_JSON_STRING) {
     TRI_FreeJson(TRI_UNKNOWN_MEM_ZONE, json);
@@ -157,13 +157,13 @@ int TRI_WriteServerId (char const* filename) {
   assert(ServerId != 0);
  
   idString = TRI_StringUInt64((uint64_t) ServerId);
-  TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "server-id", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, idString));
+  TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "serverId", TRI_CreateStringCopyJson(TRI_UNKNOWN_MEM_ZONE, idString));
   TRI_FreeString(TRI_CORE_MEM_ZONE, idString);
   
   tt = time(0);
   TRI_gmtime(tt, &tb);
   len = strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%SZ", &tb);
-  TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "created", TRI_CreateString2CopyJson(TRI_UNKNOWN_MEM_ZONE, buffer, len));
+  TRI_Insert3ArrayJson(TRI_UNKNOWN_MEM_ZONE, json, "createdTime", TRI_CreateString2CopyJson(TRI_UNKNOWN_MEM_ZONE, buffer, len));
 
   // save json info to file
   LOG_DEBUG("Writing server id to file '%s'", filename);
