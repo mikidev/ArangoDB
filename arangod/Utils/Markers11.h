@@ -28,6 +28,9 @@
 #ifndef TRIAGENS_ARANGOD_UTILS_MARKERS11_H
 #define TRIAGENS_ARANGOD_UTILS_MARKERS11_H 1
 
+#include "VocBase/datafile.h"
+#include "VocBase/vocbase.h"
+
 // -----------------------------------------------------------------------------
 // --SECTION--                                                      public types
 // -----------------------------------------------------------------------------
