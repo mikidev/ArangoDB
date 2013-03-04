@@ -213,8 +213,12 @@ static bool WriteCollectionMetaInfo (TRI_vocbase_t* vocbase,
   TRI_json_t* json;
   TRI_primary_collection_t* primary;
   TRI_shaped_json_t* shaped;
-  TRI_doc_mptr_t* mptr;
+  TRI_doc_mptr_t mptr;
+  TRI_doc_document_key_marker_t marker;
   TRI_doc_operation_context_t context;
+  TRI_sequence_value_t sequenceValue;
+  char* keyBody = 0;
+  TRI_voc_size_t keyBodySize = 0;
   int res;
 
   if (collection == NULL) {
@@ -248,9 +252,15 @@ static bool WriteCollectionMetaInfo (TRI_vocbase_t* vocbase,
     TRI_FreeJson(TRI_UNKNOWN_MEM_ZONE, json);
     return false;
   }
+            
+  sequenceValue = TRI_InitAutoMarkerDatafile(&marker.base, sizeof(marker), TRI_DOC_MARKER_KEY_DOCUMENT);
+  marker._shape = shaped->_sid;
+  marker._rid = sequenceValue;
+  res = TRI_InitMarker(&marker, TRI_DOC_MARKER_KEY_DOCUMENT, primary, NULL, shaped, 0, &keyBody, &keyBodySize);
+  // TODO: check error
 
   primary->beginWrite(primary);
-  res = primary->create(&context, TRI_DOC_MARKER_KEY_DOCUMENT, &mptr, shaped, NULL, NULL);
+  res = primary->create(&context, &marker, sizeof(marker), &mptr, shaped, NULL, keyBody, keyBodySize);
   primary->endWrite(primary);
 
   TRI_FreeShapedJson(primary->_shaper, shaped);

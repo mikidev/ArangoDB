@@ -66,7 +66,6 @@ SocketTask::SocketTask (TRI_socket_t socket, double keepAliveTimeout)
 #endif
     ownBuffer(true),
     writeLength(0) {
-    
   _readBuffer = new StringBuffer(TRI_UNKNOWN_MEM_ZONE);
   tmpReadBuffer = new char[READ_BLOCK_SIZE];
 
@@ -468,6 +467,11 @@ bool SocketTask::setup (Scheduler* scheduler, EventLoop loop) {
 void SocketTask::cleanup () {
 
   if (scheduler == 0) {
+    LOGGER_WARNING("In SocketTask::cleanup the scheduler has disappeared -- invalid pointer");
+    watcher = 0;
+    keepAliveWatcher = 0;
+    readWatcher = 0;
+    writeWatcher = 0;
     return;
   }
 

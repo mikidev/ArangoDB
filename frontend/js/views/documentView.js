@@ -1,30 +1,99 @@
 var documentView = Backbone.View.extend({
   el: '#content',
   table: '#documentTableID',
-  counter: 1,
+  colid: 0,
+  docid: 0,
+
   init: function () {
     this.initTable();
   },
 
   events: {
-    "click #saveDocument"    : "saveDocument",
-    "click #addDocumentLine" : "addLine",
-    "click #deleteRow"       : "deleteLine",
-    "click #sourceView"      : "sourceView"
+    "click #saveDocument"       : "saveDocument",
+    //"click #addDocumentLine"    : "addLine",
+    "click #deleteRow"          : "deleteLine",
+    "click #sourceView"         : "sourceView",
+    "click #editFirstRow"       : "editFirst",
+    "click #documentTableID tr" : "clicked",
+    "click #editSecondRow"      : "editSecond"
   },
 
   template: new EJS({url: '/_admin/html/js/templates/documentView.ejs'}),
 
+  typeCheck: function (type) {
+    if (type === 'edge') {
+      var result = window.arangoDocumentStore.getEdge(this.colid, this.docid);
+      if (result === true) {
+        this.initTable();
+        this.drawTable();
+      }
+      else if (result === false) {
+      }
+    }
+    else if (type === 'document') {
+      var result = window.arangoDocumentStore.getDocument(this.colid, this.docid);
+      if (result === true) {
+        this.initTable();
+        this.drawTable();
+      }
+      else if (result === false) {
+      }
+    }
+  },
+  clicked: function (a) {
+    self = a.currentTarget;
+    var checkData = $(this.table).dataTable().fnGetData(self);
+    try {
+      if (checkData[0] === '<div class="notwriteable"></div>') {
+        this.addLine();
+        return;
+      }
+    }
+    catch (e) {
+      return;
+    }
+  },
   render: function() {
     $(this.el).html(this.template.text);
     this.breadcrumb();
     return this;
   },
+  editFirst: function (e) {
+    var element = e.currentTarget;
+    var prevElement = $(element).parent().prev();
+    $(prevElement).click();
+  },
+  editSecond: function (e) {
+    var element = e.currentTarget;
+    var prevElement = $(element).parent().prev();
+    $(prevElement).click();
+  },
   sourceView: function () {
     window.location.hash = window.location.hash + "/source";
   },
   saveDocument: function () {
-    window.arangoDocumentStore.saveDocument();
+    if (this.type === 'document') {
+      var model = window.arangoDocumentStore.models[0].attributes;
+      model = JSON.stringify(model);
+      var result = window.arangoDocumentStore.saveDocument(this.colid, this.docid, model);
+      if (result === true) {
+        arangoHelper.arangoNotification('Document saved');
+      }
+      else if (result === false) {
+        arangoHelper.arangoAlert('Document error');
+      }
+    }
+    else if (this.type === 'edge') {
+      var model = window.arangoDocumentStore.models[0].attributes;
+      model = JSON.stringify(model);
+      var result = window.arangoDocumentStore.saveEdge(this.colid, this.docid, model);
+      if (result === true) {
+        arangoHelper.arangoNotification('Edge saved');
+      }
+      else if (result === false) {
+        arangoHelper.arangoError('Edge error');
+      }
+    }
   },
   breadcrumb: function () {
     var name = window.location.hash.split("/");
@@ -41,16 +110,18 @@ var documentView = Backbone.View.extend({
   drawTable: function () {
     var self = this;
     $(self.table).dataTable().fnAddData([
-      '<a class="add" class="notwriteable" id="addDocumentLine"><img id="addDocumentLine" class="plusIcon" class="pull-left" src="/_admin/html/img/plus_icon.png"> Neu hinzuf&uuml;gen</a>',
       '<div class="notwriteable"></div>',
       '<div class="notwriteable"></div>',
+      '<a class="add" class="notwriteable" id="addDocumentLine"> </a>',
       '<div class="notwriteable"></div>',
-      '<div class="notwriteable"></div>'
+      '<div class="notwriteable"></div>',
+      '<button class="enabled" id="addRow"><img id="addDocumentLine" class="plusIcon" src="/_admin/html/img/plus_icon.png"></button>'
     ]);
     $.each(window.arangoDocumentStore.models[0].attributes, function(key, value) {
       if (arangoHelper.isSystemAttribute(key)) {
         $(self.table).dataTable().fnAddData([
           key,
+          '',
           self.value2html(value, true),
           JSON.stringify(value),
           "",
@@ -58,32 +129,42 @@ var documentView = Backbone.View.extend({
         ]);
       }
       else {
-        $(self.table).dataTable().fnAddData([
-                                            key,
-                                            self.value2html(value),
-                                            JSON.stringify(value),
-                                            '<i class="icon-edit"></i>',
-                                            '<button class="enabled" id="deleteRow"><img src="/_admin/html/img/icon_delete.png" width="16" height="16"></button>'
+        $(self.table).dataTable().fnAddData(
+          [
+            key,
+            '<i class="icon-edit" id="editFirstRow"></i>',
+            self.value2html(value),
+            JSON.stringify(value),
+            '<i class="icon-edit" id="editSecondRow"></i>',
+            '<button class="enabled" id="deleteRow"><img src="/_admin/html/img/icon_delete.png" width="16" height="16"></button>'
         ]);
       }
     });
     this.makeEditable();
+    $(this.table).dataTable().fnSort([ [0,'asc'] ]);
 
   },
 
   addLine: function () {
-    $(this.table).dataTable().fnAddData([
-                                        "key"+arangoHelper.getRandomToken(),
-                                        this.value2html("editme"),
-                                        JSON.stringify("editme"),
-                                        '<i class="icon-edit"></i>',
-                                        '<button class="enabled" id="deleteRow"><img src="/_admin/html/img/icon_delete.png" width="16" height="16"></button>'
-    ]);
-
+    var randomKey = arangoHelper.getRandomToken();
+    $(this.table).dataTable().fnAddData(
+      [
+        "zkey"+randomKey,
+        '<i class="icon-edit" id="editFirstRow"></i>',
+        this.value2html("editme"),
+        JSON.stringify("editme"),
+        '<i class="icon-edit" id="editSecondRow"></i>',
+        '<button class="enabled" id="deleteRow"><img src="/_admin/html/img/icon_delete.png" width="16" height="16"></button>'
+      ]
+    );
     this.makeEditable();
-    this.updateLocalDocumentStorage();
-    $(this.table).dataTable().fnClearTable();
-    this.drawTable();
+    var tableContent = $('table').find('td');
+    $.each(tableContent, function(key, val) {
+      if ($(val).text() === "zkey"+randomKey) {
+        $(val).click();
+        return;
+      }
+    });
   },
 
   deleteLine: function (a) {
@@ -103,10 +184,11 @@ var documentView = Backbone.View.extend({
       "bDeferRender": true,
       "iDisplayLength": -1,
       "aoColumns": [
-        {"sClass":"writeable", "bSortable": false, "sWidth":"400px" },
+        {"sClass":"writeable", "bSortable": false, "sWidth":"200px" },
+        {"sClass":"read_only leftCell", "bSortable": false, "sWidth": "20px"},
         {"sClass":"writeable rightCell", "bSortable": false},
         {"bVisible": false },
-        {"sClass":"read_only leftCell", "bSortable": false, "sWidth": "30px"},
+        {"sClass":"read_only leftCell", "bSortable": false, "sWidth": "20px"},
         {"sClass":"read_only leftCell", "bSortable": false, "sWidth": "30px"}
       ],
       "oLanguage": {"sEmptyTable": "No documents"}
@@ -145,10 +227,14 @@ var documentView = Backbone.View.extend({
     var result = {};
 
     for (row in data) {
-      var row_data = data[row];
-      result[row_data[0]] = JSON.parse(row_data[2]);
+      //Exclude "add-collection" row
+      if (row !== '0') {
+        var row_data = data[row];
+        result[row_data[0]] = JSON.parse(row_data[3]);
+      }
     }
     window.arangoDocumentStore.updateLocalDocument(result);
+    //then sent to server
     this.saveDocument();
   },
   makeEditable: function () {
@@ -171,13 +257,12 @@ var documentView = Backbone.View.extend({
     });
     $('.writeable', documentEditTable.fnGetNodes()).editable(function(value, settings) {
       var aPos = documentEditTable.fnGetPosition(this);
-      console.log(aPos);
       if (aPos[1] == 0) {
         documentEditTable.fnUpdate(value, aPos[0], aPos[1]);
         self.updateLocalDocumentStorage();
         return value;
       }
-      if (aPos[1] == 1) {
+      if (aPos[1] == 2) {
         var oldContent = JSON.parse(documentEditTable.fnGetData(aPos[0], aPos[1] + 1));
         var test = self.getTypedValue(value);
         if (String(value) == String(oldContent)) {
@@ -199,7 +284,7 @@ var documentView = Backbone.View.extend({
         if (aPos[1] == 0) {
           return value;
         }
-        if (aPos[1] == 1) {
+        if (aPos[1] == 2) {
           var oldContent = documentEditTable.fnGetData(aPos[0], aPos[1] + 1);
           if (typeof(oldContent) == 'object') {
             //grep hidden row and paste in visible row
@@ -214,8 +299,10 @@ var documentView = Backbone.View.extend({
       type: "autogrow",
       tooltip: 'click to edit',
       cssclass : 'jediTextarea',
-      submit: 'Okay',
+      submitcssclass: 'btn btn-success pull-right',
+      cancelcssclass: 'btn btn-danger pull-right',
       cancel: 'Cancel',
+      submit: 'Save',
       onblur: 'cancel',
       //style: 'display: inline',
       autogrow: {lineHeight: 16, minHeight: 30}
@@ -256,7 +343,7 @@ var documentView = Backbone.View.extend({
     value = value + '';
 
     if (value !== '' && (value.substr(0, 1) != '"' || value.substr(-1) != '"')) {
-      alert("You have entered an invalid string value. Please review and adjust it.");
+      arangoHelper.arangoNotification('You have entered an invalid string value. Please review and adjust it.');
       throw "error";
     }
 
@@ -264,7 +351,7 @@ var documentView = Backbone.View.extend({
       value = JSON.parse(value);
     }
     catch (e) {
-      alert("You have entered an invalid string value. Please review and adjust it.");
+      arangoHelper.arangoNotification('You have entered an invalid string value. Please review and adjust it.');
       throw e;
     }
     return value;

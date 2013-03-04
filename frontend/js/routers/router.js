@@ -20,6 +20,18 @@ $(document).ready(function() {
       window.arangoDocumentsStore = new window.arangoDocuments();
       window.arangoDocumentStore = new window.arangoDocument();
 
+      window.arangoCollectionsStore.fetch({
+        success: function () {
+          window.collectionsView = new window.collectionsView({
+            collection: window.arangoCollectionsStore
+          });
+        }
+      });
+
+      window.collectionView = new window.collectionView({
+        model: arangoCollection
+      });
+
       window.dashboardView = new window.dashboardView({
         collection: window.arangoCollectionsStore
       });
@@ -50,31 +62,24 @@ $(document).ready(function() {
       this.footerView.render();
     },
     collections: function() {
-
       var naviView = this.naviView;
-
       window.arangoCollectionsStore.fetch({
         success: function () {
-          var collectionsView = new window.collectionsView({
-            collection: window.arangoCollectionsStore
-          });
-          collectionsView.render();
+          if (!window.collectionsView) {
+          }
+          window.collectionsView.render();
           naviView.selectMenuItem('collections-menu');
         }
       });
     },
     collection: function(colid) {
       //TODO: if-statement for every view !
-      if (!this.collectionView) {
-        this.collectionView = new window.collectionView({
-          colId: colid,
-          model: arangoCollection
-        });
+      if (!window.collectionView) {
       }
       else {
-        this.collectionView.options.colId = colid;
       }
-      this.collectionView.render();
+      window.collectionView.options.colId = colid;
+      window.collectionView.render();
     },
     newCollection: function() {
       if (!this.newCollectionView) {
@@ -86,7 +91,10 @@ $(document).ready(function() {
       if (!window.documentsView) {
         window.documentsView.initTable(colid, pageid);
       }
+      var type = arangoHelper.collectionApiType(colid);
       window.documentsView.colid = colid;
+      window.documentsView.pageid = pageid;
+      window.documentsView.type = type;
       window.documentsView.render();
       window.arangoDocumentsStore.getDocuments(colid, pageid);
     },
@@ -94,20 +102,20 @@ $(document).ready(function() {
       if (!window.documentView) {
         window.documentView.initTable();
       }
+      window.documentView.colid = colid;
+      window.documentView.docid = docid;
       window.documentView.render();
-      window.arangoDocumentStore.getDocument(colid, docid);
+      var type = arangoHelper.collectionApiType(colid);
+      window.documentView.type = type;
+      window.documentView.typeCheck(type);
     },
     source: function(colid, docid) {
       window.documentSourceView.render();
-      if (window.arangoDocumentStore.models[0] == undefined) {
-        window.arangoDocumentStore.getDocument(colid, docid, "source");
-      }
-      else {
-        window.documentSourceView.fillSourceBox();
-      }
-      if (!window.documentSourceView) {
-        window.documentSourceView.initTable();
-      }
+      window.documentSourceView.colid = colid;
+      window.documentSourceView.docid = docid;
+      var type = arangoHelper.collectionApiType(colid);
+      window.documentSourceView.type = type;
+      window.documentSourceView.typeCheck(type);
     },
     shell: function() {
       if (!this.shellView) {

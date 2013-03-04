@@ -7,24 +7,28 @@
   cursor: default !important;
 }
 
-#tableDiv {
+#tableDiv,
+#logContent {
   margin-top: -40px;
   padding: 20px 20px 20px 20px;
-  background-color: rgba(0, 0, 0, 0.05);
+/*  background-color: rgba(0, 0, 0, 0.05);*/
 }
 
-#tableDiv .nav-tabs > li, #sourceDiv .nav-tabs > li  {
+#tableDiv .nav-tabs > li,
+#sourceDiv .nav-tabs > li,
+#logContent .nav-tabs > li {
   position: relative;
   z-index: 900;
 }
 
-#addDocumentLine:hover, #sourceView:hover{
+#addDocumentLine:hover,
+#sourceView:hover{
   cursor: pointer;
 }
 
-#deleteRow {
+#deleteRow, #addRow {
   border: medium none;
-  padding-left: 10px;
+  margin-top: -4px;
   background-color: transparent;
 }
 
@@ -46,6 +50,32 @@
     box-shadow: 0 1px 3px  rgba(0, 0, 0, 0.2);
 }
 
+#documentTableID thead {
+  text-align: left;
+}
+
+#documentTableID .writeable {
+  cursor: pointer;
+}
+
+.read_only {
+  cursor: default !important;
+}
+
+#editSecondRow {
+  float:right;
+  text-align:right;
+  margin-right: -5px !important;
+}
+
+#documentTableID .icon-edit {
+  margin-top: 0;
+}
+
+#documentTableID .icon-edit:hover {
+  cursor: pointer;
+}
+
 #documentTableID.dataTable thead tr {
     background-image: -moz-linear-gradient(top, #f3efec, #ebe7e3);
     background-image: -ms-linear-gradient(top, #f3efec, #ebe7e3);
@@ -60,9 +90,9 @@
 	border:1px solid #c1bdba;
 }
 
-#documentTableID.dataTable td {
+/*#documentTableID.dataTable td {
 	padding: 13px 10px;
-}
+}*/
 #documentTableID .odd,
 #documentTableID .even {
     -webkit-box-shadow: none;
@@ -111,15 +141,24 @@
 }
 
 #tableDiv .nav-tabs,
-#sourceDiv .nav-tabs {
+#sourceDiv .nav-tabs,
+#logContent .nav-tabs {
 	margin-bottom:-1px; border-bottom:#FFFFFF solid 1px;
 }
 
 #tableDiv .nav-tabs > li > a,
 #tableDiv .nav-tabs > li:hover > a,
 #sourceDiv .nav-tabs > li > a,
-#sourceDiv .nav-tabs > li:hover > a {
+#sourceDiv .nav-tabs > li:hover > a ,
+#logContent .nav-tabs > li > a,
+#logContent .nav-tabs > li:hover > a {
     background-image: -moz-linear-gradient(center top , #F3EFEC, #EBE7E3);
+    background-image: -ms-linear-gradient(top, #F3EFEC, #EBE7E3);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#F3EFEC), to(#EBE7E3));
+    background-image: -webkit-linear-gradient(top, #F3EFEC, #EBE7E3);
+    background-image: -o-linear-gradient(top, #F3EFEC, #EBE7E3);
+    background-image: linear-gradient(top, #bedc6a, #80a127#F3EFEC, #EBE7E3);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#F3EFEC', endColorstr='#EBE7E3', GradientType=0);
     border-top: 1px solid #F3EFEC;
     border-left: 1px solid #F3EFEC;
     border-right: 1px solid #F3EFEC;
@@ -129,7 +168,9 @@
 #tableDiv .nav-tabs > li.active > a,
 #tableDiv .nav-tabs > li:hover.active > a,
 #sourceDiv .nav-tabs > li.active > a,
-#sourceDiv .nav-tabs > li:hover.active > a {
+#sourceDiv .nav-tabs > li:hover.active > a ,
+#logContent .nav-tabs > li.active > a,
+#logContent .nav-tabs > li:hover.active > a {
 	background: #FFF;
     border: 1px solid #FFF;
 }

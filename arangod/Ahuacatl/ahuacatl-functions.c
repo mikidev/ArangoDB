@@ -410,17 +410,19 @@ static void OptimisePaths (const TRI_aql_node_t* const fcallNode,
   name = fieldAccess->_fullName + fieldAccess->_variableNameLength;
 
   directionValue = TRI_AQL_NODE_STRING(direction);
-
   // try to optimise the vertex collection access
   if (TRI_EqualString(directionValue, "outbound")) {
     CheckPathRestriction(fieldAccess, context, vertexCollection, ".source.", name, n);
   }
   else if (TRI_EqualString(directionValue, "inbound")) {
-    CheckPathRestriction(fieldAccess, context, vertexCollection, ".destination.", name, n);
+    CheckPathRestriction(fieldAccess, context, vertexCollection, ".source.", name, n);
   }
   else if (TRI_EqualString(directionValue, "any")) {
-    CheckPathRestriction(fieldAccess, context, vertexCollection, ".source.", name, n);
-    CheckPathRestriction(fieldAccess, context, vertexCollection, ".destination.", name, n);
+    // "any" cannot be optimised sanely becuase the conditions would be AND-combined
+    // (but for "any", we'd need them OR-combined)
+
+    // CheckPathRestriction(fieldAccess, context, vertexCollection, ".source.", name, n);
+    // CheckPathRestriction(fieldAccess, context, vertexCollection, ".destination.", name, n);
   }
 
   // check if we have a filter on LENGTH(edges)
@@ -599,6 +601,9 @@ TRI_associative_pointer_t* TRI_InitialiseFunctionsAql (void) {
   REGISTER_FUNCTION("SUBSTRING", "STRING_SUBSTRING", true, false, "s,n|n", NULL);
   REGISTER_FUNCTION("CONTAINS", "STRING_CONTAINS", true, false, "s,s|b", NULL);
   REGISTER_FUNCTION("LIKE", "STRING_LIKE", true, false, "s,r|b", NULL);
+  REGISTER_FUNCTION("LEFT", "STRING_LEFT", true, false, "s,n", NULL);
+  REGISTER_FUNCTION("RIGHT", "STRING_RIGHT", true, false, "s,n", NULL);
+  REGISTER_FUNCTION("TRIM", "STRING_TRIM", true, false, "s|n", NULL);
 
   // numeric functions 
   REGISTER_FUNCTION("FLOOR", "NUMBER_FLOOR", true, false, "n", NULL);
@@ -606,15 +611,23 @@ TRI_associative_pointer_t* TRI_InitialiseFunctionsAql (void) {
   REGISTER_FUNCTION("ROUND", "NUMBER_ROUND", true, false, "n", NULL);
   REGISTER_FUNCTION("ABS", "NUMBER_ABS", true, false, "n", NULL);
   REGISTER_FUNCTION("RAND", "NUMBER_RAND", false, false, "", NULL);
+  REGISTER_FUNCTION("SQRT", "NUMBER_SQRT", true, false, "n", NULL);
 
   // list functions
   REGISTER_FUNCTION("UNION", "UNION", true, false, "l,l|+", NULL);
-  REGISTER_FUNCTION("LENGTH", "LENGTH", true, true, "la", NULL);
+  REGISTER_FUNCTION("LENGTH", "LENGTH", true, true, "las", NULL);
   REGISTER_FUNCTION("MIN", "MIN", true, true, "l", NULL);
   REGISTER_FUNCTION("MAX", "MAX", true, true, "l", NULL);
   REGISTER_FUNCTION("SUM", "SUM", true, true, "l", NULL);
+  REGISTER_FUNCTION("MEDIAN", "MEDIAN", true, true, "l", NULL);
+  REGISTER_FUNCTION("AVERAGE", "AVERAGE", true, true, "l", NULL);
+  REGISTER_FUNCTION("VARIANCE_SAMPLE", "VARIANCE_SAMPLE", true, true, "l", NULL);
+  REGISTER_FUNCTION("VARIANCE_POPULATION", "VARIANCE_POPULATION", true, true, "l", NULL);
+  REGISTER_FUNCTION("STDDEV_SAMPLE", "STDDEV_SAMPLE", true, true, "l", NULL);
+  REGISTER_FUNCTION("STDDEV_POPULATION", "STDDEV_POPULATION", true, true, "l", NULL);
   REGISTER_FUNCTION("UNIQUE", "UNIQUE", true, false, "l", NULL);
-  REGISTER_FUNCTION("REVERSE", "REVERSE", true, false, "l", NULL);
+  // note: REVERSE() can be applied on strings, too
+  REGISTER_FUNCTION("REVERSE", "REVERSE", true, false, "ls", NULL);
   REGISTER_FUNCTION("FIRST", "FIRST", true, false, "l", NULL);
   REGISTER_FUNCTION("LAST", "LAST", true, false, "l", NULL);
   

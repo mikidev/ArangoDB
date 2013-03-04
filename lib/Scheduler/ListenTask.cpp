@@ -101,6 +101,7 @@ bool ListenTask::setup (Scheduler* scheduler, EventLoop loop) {
   if (! isBound()) {
     return true;
   }
+
   
 #ifdef _WIN32
   // ..........................................................................
@@ -122,7 +123,7 @@ bool ListenTask::setup (Scheduler* scheduler, EventLoop loop) {
     int res = closesocket(_listenSocket.fileHandle);
     if (res != 0) {
       res = WSAGetLastError();
-      LOGGER_ERROR("In ListenTask::setup closesocket(...) failed with error code: ",res);
+      LOGGER_ERROR("In ListenTask::setup closesocket(...) failed with error code: " << res);
     }
     _listenSocket.fileHandle = -1;
     _listenSocket.fileDescriptor = -1;
@@ -133,7 +134,6 @@ bool ListenTask::setup (Scheduler* scheduler, EventLoop loop) {
 
   this->scheduler = scheduler;
   this->loop = loop;
-  
   readWatcher = scheduler->installSocketEvent(loop, EVENT_SOCKET_READ, this, _listenSocket);
   
   if (readWatcher == -1) {
@@ -145,6 +145,11 @@ bool ListenTask::setup (Scheduler* scheduler, EventLoop loop) {
 
 
 void ListenTask::cleanup () {
+  if (scheduler == 0) {
+    LOGGER_WARNING("In ListenTask::cleanup the scheduler has disappeared -- invalid pointer");
+    readWatcher = 0;
+    return;
+  }
   scheduler->uninstallEvent(readWatcher);
   readWatcher = 0;
 }
@@ -152,7 +157,6 @@ void ListenTask::cleanup () {
 
 
 bool ListenTask::handleEvent (EventToken token, EventType revents) {
-
   if (token == readWatcher) {
     if ((revents & EVENT_SOCKET_READ) == 0) {
       return true;
@@ -228,7 +232,6 @@ bool ListenTask::handleEvent (EventToken token, EventType revents) {
     
     info.serverAddress = _endpoint->getHost();
     info.serverPort = _endpoint->getPort();
-    
     
     return handleConnected(connectionSocket, info);
   }

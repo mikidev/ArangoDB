@@ -174,6 +174,11 @@ namespace triagens {
 ////////////////////////////////////////////////////////////////////////////////
 
         void beginShutdown ()  {
+          #ifdef _WIN32
+            // Can not close socket descriptors here. Probably should not close
+            // these for linux as well.
+            return;
+          #endif  
           if (_commSocket.fileHandle != -1) {
             TRI_CLOSE_SOCKET(_commSocket);
             _commSocket.fileDescriptor = -1;

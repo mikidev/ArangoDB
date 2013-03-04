@@ -621,6 +621,7 @@ void ApplicationServer::stop () {
     feature->stop();
     LOGGER_TRACE("shut down server feature '" << feature->getName() << "'");
   }
+  
 
 }
 

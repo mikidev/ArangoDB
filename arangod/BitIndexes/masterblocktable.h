@@ -213,7 +213,6 @@ static int createMasterTable(MasterTable_t** mt, TRI_memory_zone_t* memoryZone, 
   
   for (j = 0; j < (*mt)->_numBlocks; ++j) {
     MasterTableBlock_t* block = (*mt)->_blocks + j;    
-    // TODO: negative integer implicitly converted to unsigned type [-Wsign-conversion] 
     block->_free = BITARRAY_COLUMN_FREE_MARKER;
     TRI_PushBackVector(&((*mt)->_freeBlockPosition), &j);      
   }

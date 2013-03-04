@@ -17,11 +17,9 @@ var documentsView = Backbone.View.extend({
   events: {
     "click #collectionPrev"      : "prevCollection",
     "click #collectionNext"      : "nextCollection",
-
+    "click #confirmCreateEdge"   : "addEdge",
     "click #documentsTableID tr" : "clicked",
     "click #deleteDoc"           : "remove",
-    "click #plusIconDoc"         : "addDocument",
-    "click #documentAddBtn"      : "addDocument",
     "click #documents_first"     : "firstDocuments",
     "click #documents_last"      : "lastDocuments",
     "click #documents_prev"      : "prevDocuments",
@@ -52,10 +50,44 @@ var documentsView = Backbone.View.extend({
       $('#collectionNext').parent().addClass('disabledPag');
     }
   },
-
   addDocument: function () {
     var collid  = window.location.hash.split("/")[1];
-    window.arangoDocumentStore.addDocument(collid);
+    var doctype = arangoHelper.collectionApiType(collid);
+
+    if (doctype === 'edge') {
+      $('#edgeCreateModal').modal('show');
+      $('.modalTooltips').tooltip({
+        placement: "left"
+      });
+    }
+    else {
+      var result = window.arangoDocumentStore.createTypeDocument(collid);
+      //Success
+      if (result !== false) {
+        window.location.hash = "collection/"+result;
+        arangoHelper.arangoNotification('Document created');
+      }
+      //Error
+      else {
+        arangoHelper.arangoError('Creating document failed');
+      }
+    }
+  },
+  addEdge: function () {
+    var collid  = window.location.hash.split("/")[1];
+    var from = $('#new-document-from').val();
+    var to = $('#new-document-to').val();
+    var result = window.arangoDocumentStore.createTypeEdge(collid, from, to);
+
+    if (result !== false) {
+      $('#edgeCreateModal').modal('hide');
+      window.location.hash = "collection/"+result;
+    }
+    //Error
+    else {
+      $('#edgeCreateModal').modal('hide');
+      arangoHelper.arangoError('Creating edge failed');
+    }
   },
   firstDocuments: function () {
     window.arangoDocumentsStore.getFirstDocuments();
@@ -83,23 +115,42 @@ var documentsView = Backbone.View.extend({
   },
   reallyDelete: function () {
     var self = this;
-    var todelete = $(self.idelement).text();
-    var deleted = window.arangoDocumentStore.deleteDocument(todelete);
+    var row = $(self.target).closest("tr").get(0);
+    var hash = window.location.hash.split("/");
+    var page = hash[3];
+    var deleted = false;
+    this.docid = $(self.idelement).text();
+
+    if (this.type === 'document') {
+      var result = window.arangoDocumentStore.deleteDocument(this.colid, this.docid);
+      if (result === true) {
+        //on success
+        arangoHelper.arangoNotification('Document deleted');
+        deleted = true;
+      }
+      else if (result === false) {
+        arangoHelper.arangoError('Document error');
+      }
+    }
+    else if (this.type === 'edge') {
+      var result = window.arangoDocumentStore.deleteEdge(this.colid, this.docid);
+      if (result === true) {
+        //on success
+        arangoHelper.arangoNotification('Edge deleted');
+        deleted = true;
+      }
+      else if (result === false) {
+        arangoHelper.arangoError('Edge error');
+      }
+    }
+
     if (deleted === true) {
-      var row = $(self.target).closest("tr").get(0);
       $('#documentsTableID').dataTable().fnDeleteRow($('#documentsTableID').dataTable().fnGetPosition(row));
-      var hash = window.location.hash.split("/");
-      var page = hash[3];
-      var collection = hash[1];
-      //TODO: more elegant solution...
       $('#documentsTableID').dataTable().fnClearTable();
-      window.arangoDocumentsStore.getDocuments(collection, page);
+      window.arangoDocumentsStore.getDocuments(this.colid, page);
       $('#docDeleteModal').modal('hide');
     }
-    else {
-      alert("something wrong");
-      $('#docDeleteModal').modal('hide');
-    }
+
   },
   clicked: function (a) {
     if (this.alreadyClicked == true) {
@@ -116,7 +167,7 @@ var documentsView = Backbone.View.extend({
     }
 
     var rowContent = $(this.table).dataTable().fnGetData(aPos);
-    window.location.hash = "#collection/" + rowContent[0];
+    window.location.hash = "#collection/" + this.colid + "/" + rowContent[0];
   },
 
   initTable: function (colid, pageid) {
@@ -147,31 +198,32 @@ var documentsView = Backbone.View.extend({
     var self = this;
     $.each(window.arangoDocumentsStore.models, function(key, value) {
       $(self.table).dataTable().fnAddData([
-                                          value.attributes.id,
-                                          //value.attributes.key,
+                                          //value.attributes.id,
+                                          value.attributes.key,
                                           //value.attributes.rev,
                                           '<pre class=prettify title="'+self.escaped(JSON.stringify(value.attributes.content)) +'">' + self.cutByResolution(JSON.stringify(value.attributes.content)) + '</pre>',
                                           '<button class="enabled" id="deleteDoc"><img src="/_admin/html/img/icon_delete.png" width="16" height="16"></button>'
       ]);
     });
-	$(self.table).dataTable().fnAddData([
-										'',
-										'<a id="plusIconDoc" style="padding-left: 30px">Add document</a>',
-										'<img src="/_admin/html/img/plus_icon.png" id="documentAddBtn"></img>'
-		]);
+    $(self.table).dataTable().fnAddData([
+                                        '',
+                                        '<a id="plusIconDoc" style="padding-left: 30px">Add document</a>',
+                                        '<img src="/_admin/html/img/plus_icon.png" id="documentAddBtn"></img>'
+    ]);
     $(".prettify").snippet("javascript", {style: "nedit", menu: false, startText: false, transparent: true, showNum: false});
-    $(".prettify").tooltip({
+/*    $(".prettify").tooltip({
+      html: true,
       placement: "top"
-    });
+    });*/
     this.totalPages = window.arangoDocumentsStore.totalPages;
     this.currentPage = window.arangoDocumentsStore.currentPage;
     this.documentsCount = window.arangoDocumentsStore.documentsCount;
 
     if (this.documentsCount === 0) {
-      $('#documentsToolbarLeft').html('No documents');
+      $('#documentsStatus').html('No documents');
     }
     else {
-      $('#documentsToolbarLeft').html(
+      $('#documentsStatus').html(
         'Showing Page '+this.currentPage+' of '+this.totalPages+
         ', '+this.documentsCount+' entries'
       );
@@ -191,9 +243,25 @@ var documentsView = Backbone.View.extend({
     if (this.collectionContext.next === null) {
       $('#collectionNext').parent().addClass('disabledPag');
     }
+
     return this;
   },
-
+  renderPagination: function (totalPages) {
+    var currentPage = JSON.parse(this.pageid);
+    var self = this;
+    var target = $('#documentsToolbarF'),
+    options = {
+      left: 1,
+      right: 1,
+      page: currentPage,
+      lastPage: totalPages,
+      click: function(i) {
+        options.page = i;
+        window.location.hash = '#collection/' + self.colid + '/documents/' + options.page;
+      }
+    };
+    target.pagination(options);
+  },
   breadcrumb: function () {
     var name = window.location.hash.split("/")[1];
     $('#transparentHeader').append(

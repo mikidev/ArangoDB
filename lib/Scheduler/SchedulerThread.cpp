@@ -145,6 +145,7 @@ void SchedulerThread::registerTask (Scheduler* scheduler, Task* task) {
   else if (threadId() == currentThreadId()) {
     bool ok = setupTask(task, scheduler, _loop);
     if (!ok) {
+      LOGGER_WARNING("In SchedulerThread::registerTask setupTask has failed");
       cleanupTask(task);
       deleteTask(task);
     }

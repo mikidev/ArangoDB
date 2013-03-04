@@ -150,10 +150,8 @@ namespace RandomHelper {
   template<int N>
   class RandomDeviceCombined : public RandomDevice {
     public:
-      RandomDeviceCombined (string path)
-        : fd(0),
-          pos(0),
-          rseed(0) {
+      RandomDeviceCombined (string path) : fd(0),  pos(0), rseed(0) {
+      
         fd = TRI_OPEN(path.c_str(), O_RDONLY);
 
         if (fd < 0) {
@@ -174,7 +172,6 @@ namespace RandomHelper {
               ok = (flags >= 0);
             }
             if (! ok) {
-
               THROW_INTERNAL_ERROR("cannot switch random source '" + path + "' to non-blocking");
             }
           #endif

@@ -183,7 +183,6 @@ TRI_socket_t EndpointIp::connectSocket (const struct addrinfo* aip, double conne
     int result = ::connect(listenSocket.fileHandle, (const struct sockaddr*) aip->ai_addr, aip->ai_addrlen); 
     if ( result == SOCKET_ERROR) {
       TRI_CLOSE_SOCKET(listenSocket);
-
       listenSocket.fileDescriptor = 0;
       listenSocket.fileHandle = 0;
       return listenSocket;
@@ -192,7 +191,6 @@ TRI_socket_t EndpointIp::connectSocket (const struct addrinfo* aip, double conne
     
   if (!setSocketFlags(listenSocket)) { // set some common socket flags for a server
     TRI_CLOSE_SOCKET(listenSocket);
-
     listenSocket.fileDescriptor = 0;
     listenSocket.fileHandle = 0;
     return listenSocket;
@@ -233,7 +231,6 @@ TRI_socket_t EndpointIp::connect (double connectTimeout, double requestTimeout) 
   struct addrinfo hints;
   int error;
   TRI_socket_t listenSocket;
-  
   listenSocket.fileHandle = 0;
   listenSocket.fileDescriptor = 0;
   
@@ -297,13 +294,13 @@ TRI_socket_t EndpointIp::connect (double connectTimeout, double requestTimeout) 
 }
 
 #else
+
 TRI_socket_t EndpointIp::connect (double connectTimeout, double requestTimeout) {
   struct addrinfo* result = 0;
   struct addrinfo* aip;
   struct addrinfo hints;
   int error;
   TRI_socket_t listenSocket;
-  
   listenSocket.fileHandle = 0;
   listenSocket.fileDescriptor = 0;
   
@@ -327,7 +324,6 @@ TRI_socket_t EndpointIp::connect (double connectTimeout, double requestTimeout) 
     if (result != 0) { 
       freeaddrinfo(result);
     }
-
     return listenSocket;
   }
 

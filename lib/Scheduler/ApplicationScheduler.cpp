@@ -113,7 +113,9 @@ static SignalTask* localSignalTask;
           _server->beginShutdown();
         }
         else {
-          LOGGER_FATAL_AND_EXIT("control-c received again, terminating");
+          LOGGER_ERROR("control-c received (again!), terminating");
+          _exit(1);
+          // TRI_EXIT_FUNCTION(EXIT_FAILURE,0);
         }
 
         ++_seen;
@@ -196,6 +198,7 @@ static SignalTask* localSignalTask;
     string msg = ccTask->_server->getName() + " [shutting down]";
     bool shutdown = false;    
     string shutdownMessage;
+    
     // .........................................................................
     // TODO: popup message
     // .........................................................................
@@ -261,7 +264,7 @@ static SignalTask* localSignalTask;
       ccTask->_server->beginShutdown();
       ++ccTask->_seen;
       return true; 
-     }
+    }
 
      // ............................................................................
      // user is desperate to kill the server!

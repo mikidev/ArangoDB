@@ -572,10 +572,10 @@
     <ClInclude Include="..\..\arangod\FulltextIndex\fulltext-wordlist.h">
       <Filter>VocBase Header</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\arangod\Utils\AhuacatlTransaction.h">
+    <ClInclude Include="..\..\arangod\Utils\CollectionNameResolver.h">
       <Filter>Utils Header</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\arangod\Utils\CollectionNameResolver.h">
+    <ClInclude Include="..\..\arangod\Utils\AhuacatlTransaction.h">
       <Filter>Utils Header</Filter>
     </ClInclude>
   </ItemGroup>

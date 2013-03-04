@@ -160,14 +160,13 @@ TRI_socket_t EndpointUnixDomain::connect (double connectTimeout, double requestT
 
     if (result < 0) {
       TRI_CLOSE_SOCKET(listenSocket);
-
       LOGGER_ERROR("listen failed with " << errno << " (" << strerror(errno) << ")");
-
       listenSocket.fileDescriptor = 0;
       listenSocket.fileHandle = 0;
       return listenSocket;
     }
   }
+  
   else if (_type == ENDPOINT_CLIENT) {
     // connect to endpoint, executed for client endpoints only
 

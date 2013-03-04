@@ -408,7 +408,6 @@
 // ..............................................................................
 
 //#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES     1
-
 #include <stdio.h>
 #include <io.h>
 #include <WinSock2.h>
@@ -476,7 +475,7 @@ extern "C" {
 
 
 #ifndef __BOOL_DEFINED
-//typedef unsigned int bool; - this never ever going to work. Problem is sizeof(bool) in VS C++ is 1 byte and
+//typedef unsigned int bool; - this was never ever going to work. Problem is sizeof(bool) in VS C++ is 1 byte and
 // sizeof(bool) in VS C (C compiler) is -- whatever you want. However, when structures are interchanged between
 // C & C++ (as in arango) all hell will break loose.
 typedef unsigned char bool;

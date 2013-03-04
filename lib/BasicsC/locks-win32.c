@@ -82,9 +82,28 @@ void TRI_DestroyMutex (TRI_mutex_t* mutex) {
 void TRI_LockMutex (TRI_mutex_t* mutex) {
   DWORD result = WaitForSingleObject(mutex->_mutex, INFINITE);
 
-  if (result != WAIT_OBJECT_0) {
-    LOG_FATAL_AND_EXIT("could not lock the mutex");
+  switch (result) {
+
+    case WAIT_ABANDONED: {
+      LOG_FATAL_AND_EXIT("locks-win32.c:TRI_LockMutex:could not lock the condition --> WAIT_ABANDONED");
+    } 
+
+    case WAIT_OBJECT_0: {
+      // everything ok     
+      break;
+    } 
+
+    case WAIT_TIMEOUT: {
+      LOG_FATAL_AND_EXIT("locks-win32.c:TRI_LockMutex:could not lock the condition --> WAIT_TIMEOUT");
+    } 
+
+    case WAIT_FAILED: {
+      result = GetLastError();
+      LOG_FATAL_AND_EXIT("locks-win32.c:TRI_LockMutex:could not lock the condition --> WAIT_FAILED - reason -->%d",result);
+    } 
+
   }
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -845,8 +864,26 @@ bool TRI_TimedWaitCondition (TRI_condition_t* cond, uint64_t delay) {
 void TRI_LockCondition (TRI_condition_t* cond) {
   DWORD result = WaitForSingleObject(cond->_mutex, INFINITE);
 
-  if (result != WAIT_OBJECT_0) {
-    LOG_FATAL_AND_EXIT("could not lock the mutex");
+  switch (result) {
+
+    case WAIT_ABANDONED: {
+      LOG_FATAL_AND_EXIT("locks-win32.c:TRI_LockCondition:could not lock the condition --> WAIT_ABANDONED");
+    } 
+
+    case WAIT_OBJECT_0: {
+      // everything ok     
+      break;
+    } 
+
+    case WAIT_TIMEOUT: {
+      LOG_FATAL_AND_EXIT("locks-win32.c:TRI_LockCondition:could not lock the condition --> WAIT_TIMEOUT");
+    } 
+
+    case WAIT_FAILED: {
+      result = GetLastError();
+      LOG_FATAL_AND_EXIT("locks-win32.c:TRI_LockCondition:could not lock the condition --> WAIT_FAILED - reason -->%d",result);
+    } 
+
   }
 }
 

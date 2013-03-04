@@ -91,8 +91,8 @@ namespace triagens {
         : Task("HttpCommTask"),
           GeneralCommTask<S, HttpHandlerFactory>(server, socket, info, keepAliveTimeout),
           _requestType(HttpRequest::HTTP_REQUEST_ILLEGAL),
-          _origin(),
-          _denyCredentials(false) {
+          _origin(),  
+          _denyCredentials(false) {          
           ConnectionStatisticsAgentSetHttp(this);
           ConnectionStatisticsAgent::release();
 

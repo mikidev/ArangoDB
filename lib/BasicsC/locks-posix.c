@@ -113,7 +113,6 @@ void TRI_LockMutex (TRI_mutex_t* mutex) {
     if (rc == EDEADLK) {
       LOG_ERROR("mutex deadlock detected"); 
     }
-
     LOG_FATAL_AND_EXIT("could not lock the mutex: %s", strerror(rc));
   }
 }
@@ -193,7 +192,6 @@ void TRI_LockSpin (TRI_spin_t* spinLock) {
     if (rc == EDEADLK) {
       LOG_ERROR("spinlock deadlock detected"); 
     }
-
     LOG_FATAL_AND_EXIT("could not lock the spin-lock: %s", strerror(rc));
   }
 }
@@ -349,7 +347,6 @@ void TRI_WriteLockReadWriteLock (TRI_read_write_lock_t* lock) {
     if (rc == EDEADLK) {
       LOG_ERROR("rw-lock deadlock detected"); 
     }
-
     LOG_FATAL_AND_EXIT("could not write-lock the read-write lock: %s", strerror(rc));
   }
 }

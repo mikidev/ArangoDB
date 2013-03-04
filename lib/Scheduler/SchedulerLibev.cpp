@@ -573,8 +573,6 @@ EventToken SchedulerLibev::installSignalEvent (EventLoop loop, Task* task, int s
     if (type & EVENT_SOCKET_WRITE) {
       flags |= EV_WRITE;
     }
-  
-  
     watcher->token = registerWatcher(watcher, EVENT_SOCKET_READ);
     ev_io* w = (ev_io*) watcher;
     ev_io_init(w, socketCallback, socket.fileDescriptor, flags);

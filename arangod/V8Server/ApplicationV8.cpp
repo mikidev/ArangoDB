@@ -551,6 +551,7 @@ bool ApplicationV8::prepare () {
     _startupLoader.setDirectory(_startupPath);
   }
 
+  
   // set up action loader
   if (_useActions) {
     if (_actionPath.empty()) {

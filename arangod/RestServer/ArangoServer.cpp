@@ -233,6 +233,7 @@ void ArangoServer::buildApplicationServer () {
   // arangod allows defining a user-specific configuration file. arangosh and the other binaries don't
   _applicationServer->setUserConfigFile(string(".arango") + string(1, TRI_DIR_SEPARATOR_CHAR) + string("arangod.conf") );
 
+  
   // .............................................................................
   // multi-threading scheduler 
   // .............................................................................
@@ -522,7 +523,8 @@ int ArangoServer::startupServer () {
   // .............................................................................
 
   openDatabase();
- 
+  
+  
   // .............................................................................
   // prepare the various parts of the Arango server
   // .............................................................................
@@ -550,12 +552,14 @@ int ArangoServer::startupServer () {
 
   _applicationServer->prepare();
 
+  
   // .............................................................................
   // create the dispatcher
   // .............................................................................
 
   _applicationDispatcher->buildStandardQueue(_dispatcherThreads);
-  
+
+
   _applicationServer->prepare2();
   
     
@@ -612,7 +616,6 @@ int ArangoServer::startupServer () {
 
   _applicationServer->wait();
   
-
   // .............................................................................
   // and cleanup
   // .............................................................................

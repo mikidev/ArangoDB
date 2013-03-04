@@ -74,7 +74,6 @@ SslClientConnection::SslClientConnection (Endpoint* endpoint,
   GeneralClientConnection(endpoint, requestTimeout, connectTimeout, connectRetries), 
   _ssl(0),
   _ctx(0) {
-
   _socket.fileHandle = 0;
   _socket.fileDescriptor = 0;  
   _ctx = SSL_CTX_new(TLSv1_method());
@@ -135,7 +134,6 @@ bool SslClientConnection::connectSocket () {
     _ssl = 0;
     _socket.fileHandle = 0;
     _socket.fileDescriptor = 0;
-
     return false;
   }
 

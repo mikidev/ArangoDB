@@ -29,6 +29,7 @@
 #ifndef TRIAGENS_GENERAL_SERVER_GENERAL_LISTEN_TASK_H
 #define TRIAGENS_GENERAL_SERVER_GENERAL_LISTEN_TASK_H 1
 
+#include <BasicsC/socket-utils.h>
 #include "Scheduler/ListenTask.h"
 #include "Rest/Endpoint.h"
 

@@ -216,13 +216,15 @@ TRI_barrier_t* TRI_CreateBarrierUnloadCollection (TRI_barrier_list_t* container,
                                                   bool (*callback) (struct TRI_collection_s*, void*),
                                                   void* data) {
   TRI_barrier_collection_cb_t* element;
+  
 
   element = TRI_Allocate(TRI_UNKNOWN_MEM_ZONE, sizeof(TRI_barrier_collection_cb_t), false);
 
-  if (!element) {
+  if (element == NULL) {
     return NULL;
   }
 
+  
   element->base._type = TRI_BARRIER_COLLECTION_UNLOAD_CALLBACK;
 
   element->_collection = collection;
@@ -231,6 +233,7 @@ TRI_barrier_t* TRI_CreateBarrierUnloadCollection (TRI_barrier_list_t* container,
   element->callback = callback;
 
   LinkBarrierElement(&element->base, container);
+  
 
   return &element->base;
 }
