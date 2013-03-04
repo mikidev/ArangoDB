@@ -118,7 +118,7 @@ int TRI_ReadServerId (char const* filename) {
   }
 
   foundId = TRI_UInt64String(idString->_value._string.data);
-  LOG_DEBUG("Found existing server id: %llu", (unsigned long long) foundId);
+  LOG_INFO("using existing server id: %llu", (unsigned long long) foundId);
 
   if (foundId == 0) {
     TRI_FreeJson(TRI_UNKNOWN_MEM_ZONE, json);
