@@ -136,12 +136,12 @@ TRI_doc_operation_context_t;
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef struct TRI_doc_mptr_s {
-  TRI_voc_rid_t _rid;        // this is the revision identifier
-  TRI_voc_fid_t _fid;        // this is the datafile identifier
-  TRI_sequence_value_t _validFrom; // this is the creation time
-  TRI_sequence_value_t _validTo;   // this is the deletion time (0 if document is not yet deleted)
-  void const* _data;         // this is the pointer to the raw marker
-  char* _key;                // this is the document identifier (string)
+  TRI_voc_rid_t _rid;              // 8 bytes, this is the revision identifier
+  TRI_voc_fid_t _fid;              // 8 bytes, this is the datafile identifier
+  TRI_sequence_value_t _validFrom; // 8 bytes, this is the creation time
+  TRI_sequence_value_t _validTo;   // 8 bytes, this is the deletion time (0 if document is not yet deleted)
+  void const* _data;               // 4/8 bytes, this is the pointer to the raw marker
+  char* _key;                      // 4/8 bytes, this is the document identifier (string)
 }
 TRI_doc_mptr_t;
 
@@ -339,16 +339,16 @@ TRI_primary_collection_t;
 typedef struct TRI_doc_document_key_marker_s {
   TRI_df_marker_t base;
 
-  TRI_voc_rid_t   _rid;        // this is the tick for a create and update
-  TRI_voc_eid_t   _sid;
+  TRI_voc_rid_t   _rid;          // 8 bytes, this is the tick for a create and update
+  TRI_voc_eid_t   _sid;          // 8 bytes 
 
-  TRI_shape_sid_t _shape; 
+  TRI_shape_sid_t _shape;        // 8 bytes 
  
-  uint16_t        _offsetKey; 
-  uint16_t        _offsetJson; 
+  uint16_t        _offsetKey;    // 2 bytes
+  uint16_t        _offsetJson;   // 2 bytes
 
 #ifdef TRI_PADDING_32
-  char _padding_df_marker[4];
+  char _padding_df_marker[4];    // 4 bytes
 #endif
 }
 TRI_doc_document_key_marker_t;
@@ -360,14 +360,14 @@ TRI_doc_document_key_marker_t;
 typedef struct TRI_doc_edge_key_marker_s {
   TRI_doc_document_key_marker_t base;
 
-  TRI_voc_cid_t  _toCid;  
-  TRI_voc_cid_t  _fromCid; 
+  TRI_voc_cid_t  _toCid;         // 8 bytes
+  TRI_voc_cid_t  _fromCid;       // 8 bytes
 
-  uint16_t       _offsetToKey;
-  uint16_t       _offsetFromKey;
+  uint16_t       _offsetToKey;   // 2 bytes
+  uint16_t       _offsetFromKey; // 2 bytes
 
 #ifdef TRI_PADDING_32
-  char _padding_df_marker[4];
+  char _padding_df_marker[4];    // 4 bytes
 #endif
 }
 TRI_doc_edge_key_marker_t;
@@ -379,10 +379,10 @@ TRI_doc_edge_key_marker_t;
 typedef struct TRI_doc_deletion_key_marker_s {
   TRI_df_marker_t base;
   
-  TRI_voc_rid_t  _rid;        // this is the tick for an create and update
-  TRI_voc_eid_t  _sid;
+  TRI_voc_rid_t  _rid;           // 8 bytes, this is the tick for an create and update
+  TRI_voc_eid_t  _sid;           // 8 bytes
 
-  uint16_t       _offsetKey;
+  uint16_t       _offsetKey;     // 2 bytes
 }
 TRI_doc_deletion_key_marker_t;
 

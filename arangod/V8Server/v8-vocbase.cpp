@@ -55,6 +55,7 @@
 #include "Utils/CollectionNameResolver.h"
 #include "Utils/DocumentHelper.h"
 #include "Utils/EmbeddableTransaction.h"
+#include "Utils/Markers11.h"
 #include "Utils/SingleCollectionReadOnlyTransaction.h"
 #include "Utils/SingleCollectionWriteTransaction.h"
 #include "Utils/StandaloneTransaction.h"
@@ -2982,54 +2983,6 @@ static v8::Handle<v8::Value> JS_ParseAhuacatl (v8::Arguments const& argv) {
 static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
   v8::HandleScope scope;
 
-  // some typedefs for deprecated markers, only used inside this function
-  typedef uint64_t voc_did_t;
-
-  typedef struct {
-    TRI_voc_size_t _size;                 // 4 bytes, must be supplied
-    TRI_voc_crc_t _crc;                   // 4 bytes, will be generated
-
-    TRI_df_marker_type_t _type;           // 4 bytes, must be supplied
-
-#ifdef TRI_PADDING_32
-    char _padding_df_marker[4];
-#endif
-
-    uint64_t _tick;
-  }
-  base_marker_t_deprecated;
-
-  typedef struct {
-    base_marker_t_deprecated base;
-
-    voc_did_t _did;        // this is the tick for a create, but not an update
-    TRI_voc_rid_t _rid;    // this is the tick for an create and update
-    TRI_voc_eid_t _sid;
-
-    TRI_shape_sid_t _shape;
-  }
-  doc_document_marker_t_deprecated;
-
-  typedef struct {
-    doc_document_marker_t_deprecated base;
-
-    TRI_voc_cid_t _toCid;
-    voc_did_t _toDid;
-
-    TRI_voc_cid_t _fromCid;
-    voc_did_t _fromDid;
-  }
-  doc_edge_marker_t_deprecated;
-
-  typedef struct {
-    base_marker_t_deprecated base;
-
-    voc_did_t _did;        // this is the tick for a create, but not an update
-    TRI_voc_rid_t _rid;    // this is the tick for an create and update
-    TRI_voc_eid_t _sid;
-  }
-  doc_deletion_marker_t_deprecated;
-
   ssize_t writeResult;
 
   if (argv.Length() != 0) {
@@ -3179,13 +3132,13 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
 
         switch (marker._type) {
           case TRI_DOC_MARKER_DOCUMENT: {
-            doc_document_marker_t_deprecated* oldMarker = (doc_document_marker_t_deprecated*) payload;
+            markers11::doc_document_marker_t_deprecated* oldMarker = (markers11::doc_document_marker_t_deprecated*) payload;
             TRI_doc_document_key_marker_t newMarker;
             TRI_voc_size_t newMarkerSize = sizeof(TRI_doc_document_key_marker_t);
 
-            char* body = ((char*) oldMarker) + sizeof(doc_document_marker_t_deprecated);
-            TRI_voc_size_t bodySize = oldMarker->base._size - sizeof(doc_document_marker_t_deprecated); 
-            TRI_voc_size_t bodySizePadded = paddedSize - sizeof(doc_document_marker_t_deprecated); 
+            char* body = ((char*) oldMarker) + sizeof(markers11::doc_document_marker_t_deprecated);
+            TRI_voc_size_t bodySize = oldMarker->base._size - sizeof(markers11::doc_document_marker_t_deprecated); 
+            TRI_voc_size_t bodySizePadded = paddedSize - sizeof(markers11::doc_document_marker_t_deprecated); 
             
             char* keyBody;
             TRI_voc_size_t keyBodySize; 
@@ -3223,13 +3176,13 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
           }
             
           case TRI_DOC_MARKER_EDGE: {
-            doc_edge_marker_t_deprecated* oldMarker = (doc_edge_marker_t_deprecated*) payload;            
+            markers11::doc_edge_marker_t_deprecated* oldMarker = (markers11::doc_edge_marker_t_deprecated*) payload;            
             TRI_doc_edge_key_marker_t newMarker;
             TRI_voc_size_t newMarkerSize = sizeof(TRI_doc_edge_key_marker_t);
             
-            char* body = ((char*) oldMarker) + sizeof(doc_edge_marker_t_deprecated);
-            TRI_voc_size_t bodySize = oldMarker->base.base._size - sizeof(doc_edge_marker_t_deprecated); 
-            TRI_voc_size_t bodySizePadded = paddedSize - sizeof(doc_edge_marker_t_deprecated); 
+            char* body = ((char*) oldMarker) + sizeof(markers11::doc_edge_marker_t_deprecated);
+            TRI_voc_size_t bodySize = oldMarker->base.base._size - sizeof(markers11::doc_edge_marker_t_deprecated); 
+            TRI_voc_size_t bodySizePadded = paddedSize - sizeof(markers11::doc_edge_marker_t_deprecated); 
             
             char* keyBody;
             TRI_voc_size_t keyBodySize;
@@ -3289,7 +3242,7 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
           }
 
           case TRI_DOC_MARKER_DELETION: {
-            doc_deletion_marker_t_deprecated* oldMarker = (doc_deletion_marker_t_deprecated*) payload;                        
+            markers11::doc_deletion_marker_t_deprecated* oldMarker = (markers11::doc_deletion_marker_t_deprecated*) payload;                        
             TRI_doc_deletion_key_marker_t newMarker;
             TRI_voc_size_t newMarkerSize = sizeof(TRI_doc_deletion_key_marker_t);
             
