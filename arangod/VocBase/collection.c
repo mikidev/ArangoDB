@@ -48,6 +48,91 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
+/// @brief extract the numeric part from a filename
+/// the filename must look like this: /.*<type>-XXX\.<ending>$/, where XXX is
+/// a number, and <type> and <ending> are arbitrary letters
+////////////////////////////////////////////////////////////////////////////////
+
+static uint64_t GetNumericFilenamePart (const char* filename) {
+  char* pos1;
+  char* pos2;
+
+  pos1 = strrchr(filename, '.');
+
+  if (pos1 == NULL) {
+    return 0;
+  }
+  
+  pos2 = strrchr(filename, '-');
+
+  if (pos2 == NULL || pos2 > pos1) {
+    return 0;
+  }
+
+  return TRI_UInt64String2(pos2 + 1, pos1 - pos2 - 1);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief compare two filenames, based on the numeric part contained in 
+/// the filename
+////////////////////////////////////////////////////////////////////////////////
+
+static int FilenameComparator (const void* lhs, const void* rhs) {
+  const char* l = *((char**) lhs);
+  const char* r = *((char**) rhs);
+ 
+  const uint64_t numLeft  = GetNumericFilenamePart(l);
+  const uint64_t numRight = GetNumericFilenamePart(r);
+
+  if (numLeft != numRight) {
+    return numLeft < numRight ? -1 : 1;
+  }
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief compare two datafiles, based on the numeric part contained in 
+/// the filename
+////////////////////////////////////////////////////////////////////////////////
+
+static int DatafileComparator (const void* lhs, const void* rhs) {
+  TRI_datafile_t* l = *((TRI_datafile_t**) lhs);
+  TRI_datafile_t* r = *((TRI_datafile_t**) rhs);
+
+  const uint64_t numLeft  = (l->_filename != NULL ? GetNumericFilenamePart(l->_filename) : 0);
+  const uint64_t numRight = (r->_filename != NULL ? GetNumericFilenamePart(r->_filename) : 0);
+
+  if (numLeft != numRight) {
+    return numLeft < numRight ? -1 : 1;
+  }
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief sort a vector of filenames, using the numeric parts contained
+////////////////////////////////////////////////////////////////////////////////
+
+static void SortFilenames (TRI_vector_string_t* files) {
+  if (files->_length < 1) {
+    return;
+  }
+
+  qsort(files->_buffer, files->_length, sizeof(char*), &FilenameComparator);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief sort a vector of datafiles, using the numeric parts contained
+////////////////////////////////////////////////////////////////////////////////
+
+static void SortDatafiles (TRI_vector_pointer_t* files) {
+  if (files->_length < 1) {
+    return;
+  }
+
+  qsort(files->_buffer, files->_length, sizeof(TRI_datafile_t*), &DatafileComparator);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// @brief initialises a new collection
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -163,6 +248,11 @@ static TRI_col_file_structure_t ScanCollectionDirectory (char const* path) {
       }
     }
   }
+  
+  SortFilenames(&structure._journals);
+  SortFilenames(&structure._compactors);
+  SortFilenames(&structure._datafiles);
+  SortFilenames(&structure._indexes);
 
   TRI_DestroyVectorString(&files);
 
@@ -241,7 +331,7 @@ static bool CheckCollection (TRI_collection_t* collection) {
         if (datafile == NULL) {
           collection->_lastError = TRI_errno();
           LOG_ERROR("cannot open datafile '%s': %s", filename, TRI_last_error());
-          TRI_FreeString(TRI_CORE_MEM_ZONE, filename);
+
           TRI_FreeString(TRI_CORE_MEM_ZONE, filename);
           stop = true;
           break;
@@ -386,6 +476,10 @@ static bool CheckCollection (TRI_collection_t* collection) {
   }
 
   TRI_DestroyVectorPointer(&all);
+
+  SortDatafiles(&datafiles);
+  SortDatafiles(&journals);
+  SortDatafiles(&compactors);
 
   // add the datafiles and journals
   collection->_datafiles = datafiles;
