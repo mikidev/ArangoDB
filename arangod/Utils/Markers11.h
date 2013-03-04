@@ -99,6 +99,151 @@ namespace triagens {
       }
       doc_deletion_marker_t_deprecated;
 
+
+      int64_t convertDocumentMarker (char* payload, const off_t paddedSize, TRI_datafile_t* df, int fdout, const TRI_server_id_t serverId) {
+        doc_document_marker_t_deprecated* oldMarker = (doc_document_marker_t_deprecated*) payload;
+
+        TRI_doc_document_key_marker_t newMarker;
+        TRI_voc_size_t newMarkerSize = sizeof(TRI_doc_document_key_marker_t);
+
+        char* body = ((char*) oldMarker) + sizeof(doc_document_marker_t_deprecated);
+        TRI_voc_size_t bodySize = oldMarker->base._size - sizeof(doc_document_marker_t_deprecated); 
+        TRI_voc_size_t bodySizePadded = paddedSize - sizeof(doc_document_marker_t_deprecated); 
+            
+        char* keyBody;
+        TRI_voc_size_t keyBodySize; 
+        TRI_voc_size_t keySize;
+
+        char didBuffer[33];  
+        memset(&newMarker, 0, newMarkerSize); 
+        sprintf(didBuffer, "%llu", (unsigned long long) oldMarker->_did);
+
+        keySize = strlen(didBuffer) + 1;
+        keyBodySize = TRI_DF_ALIGN_BLOCK(keySize);
+        keyBody = (char*) TRI_Allocate(TRI_CORE_MEM_ZONE, keyBodySize, true);
+        TRI_CopyString(keyBody, didBuffer, keySize);      
+
+        newMarker._rid = oldMarker->_rid;
+        newMarker._sid = oldMarker->_sid;
+        newMarker._shape = oldMarker->_shape;
+        newMarker._offsetKey = newMarkerSize;
+        newMarker._offsetJson = newMarkerSize + keyBodySize;
+           
+        TRI_InitMarkerDatafile(&newMarker.base, newMarkerSize + keyBodySize + bodySize, TRI_DOC_MARKER_KEY_DOCUMENT, serverId, TRI_SEQUENCE_VALUE(oldMarker->base._tick));
+        TRI_FillCrcKeyMarkerDatafile(df, &newMarker.base, newMarkerSize, keyBody, keyBodySize, body, bodySize);
+
+        ssize_t writeResult;
+        writeResult = TRI_WRITE(fdout, &newMarker, sizeof(newMarker));
+        writeResult = TRI_WRITE(fdout, keyBody, keyBodySize);
+        writeResult = TRI_WRITE(fdout, body, bodySizePadded);
+
+        //LOG_INFO("found doc marker, type: '%d', did: '%d', rid: '%d', size: '%d', crc: '%d'", marker._type, oldMarker->_did, oldMarker->_rid,newMarker.base._size,newMarker.base._crc);
+
+        TRI_Free(TRI_CORE_MEM_ZONE, keyBody);
+
+        return sizeof(newMarker) + keyBodySize + bodySizePadded;
+      }
+      
+      int64_t convertEdgeMarker (char* payload, const off_t paddedSize, TRI_datafile_t* df, int fdout, const TRI_server_id_t serverId) {
+        doc_edge_marker_t_deprecated* oldMarker = (doc_edge_marker_t_deprecated*) payload;            
+
+        TRI_doc_edge_key_marker_t newMarker;
+        TRI_voc_size_t newMarkerSize = sizeof(TRI_doc_edge_key_marker_t);
+            
+        char* body = ((char*) oldMarker) + sizeof(doc_edge_marker_t_deprecated);
+        TRI_voc_size_t bodySize = oldMarker->base.base._size - sizeof(doc_edge_marker_t_deprecated); 
+        TRI_voc_size_t bodySizePadded = paddedSize - sizeof(doc_edge_marker_t_deprecated); 
+            
+        char* keyBody;
+        TRI_voc_size_t keyBodySize;
+            
+        size_t keySize;
+        size_t toSize;
+        size_t fromSize;            
+            
+        char didBuffer[33];  
+        char toDidBuffer[33];  
+        char fromDidBuffer[33];  
+
+        memset(&newMarker, 0, newMarkerSize); 
+        sprintf(didBuffer,"%llu", (unsigned long long) oldMarker->base._did);
+        sprintf(toDidBuffer,"%llu", (unsigned long long) oldMarker->_toDid);
+        sprintf(fromDidBuffer,"%llu", (unsigned long long) oldMarker->_fromDid);
+            
+        keySize = strlen(didBuffer) + 1;
+        toSize = strlen(toDidBuffer) + 1;
+        fromSize = strlen(fromDidBuffer) + 1;
+
+        keyBodySize = TRI_DF_ALIGN_BLOCK(keySize + toSize + fromSize);            
+        keyBody = (char*) TRI_Allocate(TRI_CORE_MEM_ZONE, keyBodySize, true);
+            
+        TRI_CopyString(keyBody,                    didBuffer,     keySize);      
+        TRI_CopyString(keyBody + keySize,          toDidBuffer,   toSize);      
+        TRI_CopyString(keyBody + keySize + toSize, fromDidBuffer, fromSize);      
+
+        newMarker.base._rid = oldMarker->base._rid;
+        newMarker.base._sid = oldMarker->base._sid;                        
+        newMarker.base._shape = oldMarker->base._shape;
+        newMarker.base._offsetKey = newMarkerSize;
+        newMarker.base._offsetJson = newMarkerSize + keyBodySize;
+            
+        newMarker._offsetToKey = newMarkerSize + keySize;
+        newMarker._offsetFromKey = newMarkerSize + keySize + toSize;
+        newMarker._toCid = oldMarker->_toCid;
+        newMarker._fromCid = oldMarker->_fromCid;
+            
+        TRI_InitMarkerDatafile(&newMarker.base.base, newMarkerSize + keyBodySize + bodySize, TRI_DOC_MARKER_KEY_EDGE, serverId, TRI_SEQUENCE_VALUE(oldMarker->base.base._tick));
+        TRI_FillCrcKeyMarkerDatafile(df, &newMarker.base.base, newMarkerSize, keyBody, keyBodySize, body, bodySize);
+
+        ssize_t writeResult;
+        writeResult = TRI_WRITE(fdout, &newMarker, newMarkerSize);
+        writeResult = TRI_WRITE(fdout, keyBody, keyBodySize);
+        writeResult = TRI_WRITE(fdout, body, bodySizePadded);
+
+        //LOG_INFO("found edge marker, type: '%d', did: '%d', rid: '%d', size: '%d', crc: '%d'", marker._type, oldMarker->base._did, oldMarker->base._rid,newMarker.base.base._size,newMarker.base.base._crc);
+
+        TRI_Free(TRI_CORE_MEM_ZONE, keyBody);
+
+        return newMarkerSize + keyBodySize + bodySizePadded;
+      }
+
+      int64_t convertDeletionMarker (char* payload, const off_t paddedSize, TRI_datafile_t* df, int fdout, const TRI_server_id_t serverId) {
+        doc_deletion_marker_t_deprecated* oldMarker = (doc_deletion_marker_t_deprecated*) payload;                        
+
+        TRI_doc_deletion_key_marker_t newMarker;
+        TRI_voc_size_t newMarkerSize = sizeof(TRI_doc_deletion_key_marker_t);
+            
+        TRI_voc_size_t keyBodySize; 
+        char* keyBody;
+        TRI_voc_size_t keySize;
+
+        char didBuffer[33];  
+        memset(&newMarker, 0, newMarkerSize); 
+        sprintf(didBuffer, "%llu", (unsigned long long) oldMarker->_did);
+      
+        keySize = strlen(didBuffer) + 1;
+        keyBodySize = TRI_DF_ALIGN_BLOCK(keySize);
+        keyBody = (char*) TRI_Allocate(TRI_CORE_MEM_ZONE, keyBodySize, true);
+        TRI_CopyString(keyBody, didBuffer, keySize);      
+
+        newMarker._rid = oldMarker->_rid;
+        newMarker._sid = oldMarker->_sid;
+        newMarker._offsetKey = newMarkerSize;
+            
+        TRI_InitMarkerDatafile(&newMarker.base, newMarkerSize + keyBodySize, TRI_DOC_MARKER_KEY_DELETION, serverId, TRI_SEQUENCE_VALUE(oldMarker->base._tick));
+        TRI_FillCrcKeyMarkerDatafile(df, &newMarker.base, newMarkerSize, keyBody, keyBodySize, NULL, 0);
+
+        ssize_t writeResult;
+        writeResult = TRI_WRITE(fdout, &newMarker, newMarkerSize);
+        writeResult = TRI_WRITE(fdout, (char*) keyBody, keyBodySize);
+
+        //LOG_INFO("found deletion marker, type: '%d', did: '%d', rid: '%d'", marker._type, oldMarker->_did, oldMarker->_rid);
+
+        TRI_Free(TRI_CORE_MEM_ZONE, keyBody);
+        
+        return newMarker.base._size;
+      }
+
     }
   }
 }
