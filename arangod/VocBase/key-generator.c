@@ -205,7 +205,9 @@ static int RevisionKey (TRI_key_generator_t* const generator,
   }
   else {
     // user has not specified a key, generate one
-    TRI_voc_rid_t revision = marker->_rid;
+    TRI_sequence_value_t sequenceValue;
+
+    TRI_ParseIdMarkerDatafile(&marker->base, NULL, &sequenceValue);
 
     if (data->_prefix != NULL && data->_prefixLength > 0) {
       // copy the prefix
@@ -214,13 +216,13 @@ static int RevisionKey (TRI_key_generator_t* const generator,
     }
 
     if (data->_padLength == 0) {
-      current += TRI_StringUInt64InPlace(revision, current);
+      current += TRI_StringUInt64InPlace(sequenceValue, current);
     }
     else {
       char numBuffer[22]; // a uint64 cannot be longer than this 
       size_t length;
 
-      length = TRI_StringUInt64InPlace(revision, (char*) &numBuffer);
+      length = TRI_StringUInt64InPlace(sequenceValue, (char*) &numBuffer);
 
       if (length < data->_padLength) {
         // pad with 0s

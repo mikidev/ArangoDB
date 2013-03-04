@@ -653,9 +653,8 @@ namespace triagens {
           if (markerType == TRI_DOC_MARKER_KEY_DOCUMENT) {
             TRI_doc_document_key_marker_t marker;
 
-            TRI_sequence_value_t sequenceValue = TRI_InitAutoMarkerDatafile(&marker.base, sizeof(marker), TRI_DOC_MARKER_KEY_DOCUMENT);
+            TRI_InitAutoMarkerDatafile(&marker.base, sizeof(marker), TRI_DOC_MARKER_KEY_DOCUMENT);
             marker._shape = shaped->_sid;
-            marker._rid = sequenceValue;
 
             int res = TRI_InitMarker(&marker, TRI_DOC_MARKER_KEY_DOCUMENT, primary, key, shaped, 0, &keyBody, &keyBodySize);
 
@@ -684,9 +683,8 @@ namespace triagens {
           else if (markerType == TRI_DOC_MARKER_KEY_EDGE) {
             TRI_doc_edge_key_marker_t marker;
 
-            TRI_sequence_value_t sequenceValue = TRI_InitAutoMarkerDatafile(&marker.base.base, sizeof(marker), TRI_DOC_MARKER_KEY_EDGE);
+            TRI_InitAutoMarkerDatafile(&marker.base.base, sizeof(marker), TRI_DOC_MARKER_KEY_EDGE);
             marker.base._shape = shaped->_sid;
-            marker.base._rid = sequenceValue;
             int res = TRI_InitMarker(&marker.base, TRI_DOC_MARKER_KEY_EDGE, primary, key, shaped, data, &keyBody, &keyBodySize);
 
             if (res != TRI_ERROR_NO_ERROR) {
@@ -924,7 +922,7 @@ namespace triagens {
             return TRI_ERROR_NO_ERROR;
           }
 
-          this->_trx = TRI_CreateTransaction(_vocbase->_transactionContext, TRI_TRANSACTION_READ_REPEATABLE);
+          this->_trx = TRI_CreateTransaction(_vocbase->_transactionContext);
 
           if (this->_trx == 0) {
             return TRI_ERROR_OUT_OF_MEMORY;

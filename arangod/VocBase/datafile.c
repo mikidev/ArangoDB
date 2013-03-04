@@ -1110,7 +1110,9 @@ int TRI_ParseIdMarkerDatafile (const TRI_df_marker_t* const marker,
   value |= (((uint64_t) *ptr++) << 16); 
   value |= (((uint64_t) *ptr++) << 8); 
   value |= (((uint64_t) *ptr++)); 
-  *serverId = value;
+  if (serverId != NULL) {
+    *serverId = value;
+  }
   
   // sequence-value
   value = 0;

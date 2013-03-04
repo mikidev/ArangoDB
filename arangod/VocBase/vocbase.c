@@ -216,7 +216,6 @@ static bool WriteCollectionMetaInfo (TRI_vocbase_t* vocbase,
   TRI_doc_mptr_t mptr;
   TRI_doc_document_key_marker_t marker;
   TRI_doc_operation_context_t context;
-  TRI_sequence_value_t sequenceValue;
   char* keyBody = 0;
   TRI_voc_size_t keyBodySize = 0;
   int res;
@@ -253,9 +252,8 @@ static bool WriteCollectionMetaInfo (TRI_vocbase_t* vocbase,
     return false;
   }
             
-  sequenceValue = TRI_InitAutoMarkerDatafile(&marker.base, sizeof(marker), TRI_DOC_MARKER_KEY_DOCUMENT);
+  TRI_InitAutoMarkerDatafile(&marker.base, sizeof(marker), TRI_DOC_MARKER_KEY_DOCUMENT);
   marker._shape = shaped->_sid;
-  marker._rid = sequenceValue;
   res = TRI_InitMarker(&marker, TRI_DOC_MARKER_KEY_DOCUMENT, primary, NULL, shaped, 0, &keyBody, &keyBodySize);
   // TODO: check error
 
@@ -1469,7 +1467,7 @@ TRI_vocbase_t* TRI_OpenVocBase (char const* path) {
                              EqualKeyCollectionName,
                              NULL);
 
-  vocbase->_transactionContext = TRI_CreateTransactionContext(vocbase, 1);
+  vocbase->_transactionContext = TRI_CreateTransactionContext(vocbase);
 
   TRI_InitAssociativePointer(&vocbase->_authInfo,
                              TRI_CORE_MEM_ZONE, 

@@ -120,20 +120,6 @@ static const char* StatusString (const TRI_transaction_status_e status) {
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief generate a transaction id
-/// The context lock must be held when calling this function
-////////////////////////////////////////////////////////////////////////////////
-
-#if 0
-static TRI_transaction_local_id_t NextLocalTransactionId (TRI_transaction_context_t* const context) {
-  TRI_transaction_local_id_t id;
-
-  id = ++context->_id._localId;
-  return (TRI_transaction_local_id_t) id;
-}
-#endif
-
-////////////////////////////////////////////////////////////////////////////////
 /// @brief register a transaction in the global transactions list
 /// The context lock must be held when calling this function
 ////////////////////////////////////////////////////////////////////////////////
@@ -379,8 +365,7 @@ void FreeCollectionGlobalInstance (TRI_transaction_collection_global_t* const gl
 /// @brief create the global transaction context
 ////////////////////////////////////////////////////////////////////////////////
 
-TRI_transaction_context_t* TRI_CreateTransactionContext (TRI_vocbase_t* const vocbase,
-                                                         TRI_transaction_server_id_t serverId) {
+TRI_transaction_context_t* TRI_CreateTransactionContext (TRI_vocbase_t* const vocbase) {
   TRI_transaction_context_t* context;
 
   context = (TRI_transaction_context_t*) TRI_Allocate(TRI_UNKNOWN_MEM_ZONE, sizeof(TRI_transaction_context_t), false);
@@ -406,8 +391,6 @@ TRI_transaction_context_t* TRI_CreateTransactionContext (TRI_vocbase_t* const vo
 #endif
 
   context->_vocbase = vocbase;
-  context->_id._localId  = 0;
-  context->_id._serverId = serverId;
 
   return context;
 }
@@ -982,8 +965,6 @@ static int RegisterTransaction (TRI_transaction_t* const trx) {
   // start critical section -----------------------------------------
   TRI_LockMutex(&context->_lock); 
 
-  // create new trx id
-  trx->_id._localId = NextLocalTransactionId(context);
   // insert transaction into global list of transactions
   res = InsertTransactionList(list, trx);
 
@@ -1016,8 +997,7 @@ static int RegisterTransaction (TRI_transaction_t* const trx) {
 /// @brief create a new transaction container
 ////////////////////////////////////////////////////////////////////////////////
 
-TRI_transaction_t* TRI_CreateTransaction (TRI_transaction_context_t* const context,
-                                          const TRI_transaction_isolation_level_e isolationLevel) {
+TRI_transaction_t* TRI_CreateTransaction (TRI_transaction_context_t* const context) {
   TRI_transaction_t* trx;
   
   trx = (TRI_transaction_t*) TRI_Allocate(TRI_UNKNOWN_MEM_ZONE, sizeof(TRI_transaction_t), false);
@@ -1027,11 +1007,9 @@ TRI_transaction_t* TRI_CreateTransaction (TRI_transaction_context_t* const conte
   } 
 
   trx->_context           = context;
-  trx->_id._serverId      = context->_id._serverId;
-  trx->_id._localId       = 0;
+  trx->_id                = TRI_NewGlobalIdSequence();
   trx->_status            = TRI_TRANSACTION_CREATED;  
   trx->_type              = TRI_TRANSACTION_READ;
-  trx->_isolationLevel    = isolationLevel;
   trx->_hints             = 0;
   
   TRI_InitVectorPointer2(&trx->_collections, TRI_UNKNOWN_MEM_ZONE, 2);

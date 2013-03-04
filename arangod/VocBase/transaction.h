@@ -36,6 +36,8 @@
 #include "BasicsC/vector.h"
 #include "BasicsC/voc-errors.h"
 
+#include "VocBase/sequence.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -61,39 +63,6 @@ struct TRI_vocbase_col_s;
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef uint64_t TRI_transaction_cid_t;
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief local transaction id typedef
-////////////////////////////////////////////////////////////////////////////////
-
-typedef uint64_t TRI_transaction_local_id_t;
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief server identifier type
-////////////////////////////////////////////////////////////////////////////////
-
-typedef uint16_t TRI_transaction_server_id_t;
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief transaction id typedef
-////////////////////////////////////////////////////////////////////////////////
-
-typedef struct TRI_transaction_id_s {
-  TRI_transaction_local_id_t  _localId;
-  TRI_transaction_server_id_t _serverId;
-}
-TRI_transaction_id_t;
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief transaction isolation level
-////////////////////////////////////////////////////////////////////////////////
-
-typedef enum {
-  TRI_TRANSACTION_READ_UNCOMMITED  = 1,
-  TRI_TRANSACTION_READ_COMMITTED   = 2,
-  TRI_TRANSACTION_READ_REPEATABLE  = 3
-}
-TRI_transaction_isolation_level_e;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief transaction type
@@ -185,7 +154,7 @@ TRI_transaction_list_t;
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef struct TRI_transaction_context_s {
-  TRI_transaction_id_t      _id;                // last transaction id assigned
+  TRI_sequence_value_t      _id;                // last transaction id assigned
 #if 0  
   TRI_mutex_t               _lock;              // lock used to serialize starting/stopping transactions
   TRI_mutex_t               _collectionLock;    // lock used when accessing _collections
@@ -227,9 +196,7 @@ TRI_transaction_collection_global_t;
 /// @brief create the global transaction context
 ////////////////////////////////////////////////////////////////////////////////
 
-TRI_transaction_context_t* TRI_CreateTransactionContext (struct TRI_vocbase_s* const,
-                                                         TRI_transaction_server_id_t);
-
+TRI_transaction_context_t* TRI_CreateTransactionContext (struct TRI_vocbase_s* const);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief free the global transaction context
@@ -325,10 +292,9 @@ TRI_transaction_hint_e;
 
 typedef struct TRI_transaction_s {
   TRI_transaction_context_t*        _context;        // global context object
-  TRI_transaction_id_t              _id;             // id of transaction
+  TRI_sequence_value_t              _id;             // id of transaction
   TRI_transaction_type_e            _type;           // access type (read|write)
   TRI_transaction_status_e          _status;         // current status
-  TRI_transaction_isolation_level_e _isolationLevel; // isolation level
   TRI_vector_pointer_t              _collections;    // list of participating collections
   TRI_transaction_hint_t            _hints;          // hints;
 }
@@ -351,8 +317,7 @@ TRI_transaction_t;
 /// @brief create a new transaction container
 ////////////////////////////////////////////////////////////////////////////////
 
-TRI_transaction_t* TRI_CreateTransaction (TRI_transaction_context_t* const,
-                                          const TRI_transaction_isolation_level_e);
+TRI_transaction_t* TRI_CreateTransaction (TRI_transaction_context_t* const);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief free a transaction container
@@ -389,15 +354,13 @@ bool TRI_IsMultiCollectionWriteTransaction (const TRI_transaction_t* const);
 /// @brief return the local id of a transaction
 ////////////////////////////////////////////////////////////////////////////////
 
-TRI_transaction_local_id_t TRI_LocalIdTransaction (const TRI_transaction_t* const);
+TRI_sequence_value_t TRI_IdTransaction (const TRI_transaction_t* const);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief dump information about a transaction
 ////////////////////////////////////////////////////////////////////////////////
 
-#if 0
 void TRI_DumpTransaction (TRI_transaction_t* const);
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief check if a collection is contained in a transaction and return it

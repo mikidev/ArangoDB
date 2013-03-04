@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief marker types from ArangoDB 1.1
+/// @brief marker types from ArangoDB 1.2
 ///
 /// @file
 ///
@@ -25,19 +25,19 @@
 /// @author Copyright 2013, triAGENS GmbH, Cologne, Germany
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef TRIAGENS_ARANGOD_UTILS_MARKERS11_H
-#define TRIAGENS_ARANGOD_UTILS_MARKERS11_H 1
+#ifndef TRIAGENS_ARANGOD_UTILS_MARKERS12_H
+#define TRIAGENS_ARANGOD_UTILS_MARKERS12_H 1
 
 #include "VocBase/datafile.h"
 #include "VocBase/vocbase.h"
 
 // -----------------------------------------------------------------------------
-// --SECTION--                                           Arango 1.1 marker types
+// --SECTION--                                           Arango 1.2 marker types
 // -----------------------------------------------------------------------------
 
 namespace triagens {
   namespace arango {
-    namespace markers11 {
+    namespace markers12 {
 
 // -----------------------------------------------------------------------------
 // --SECTION--                                                      public types
@@ -49,75 +49,68 @@ namespace triagens {
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief document id type used in 1.1
+/// @brief transaction id type used in 1.2
 ////////////////////////////////////////////////////////////////////////////////
 
-      typedef uint64_t voc_did_t;
+      typedef uint64_t voc_tid_t;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief step id type used in 1.1
+/// @brief step type used in 1.2
 ////////////////////////////////////////////////////////////////////////////////
 
       typedef uint64_t voc_eid_t;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief base marker used in 1.1
+/// @brief document marker used in 1.2
 ////////////////////////////////////////////////////////////////////////////////
 
       typedef struct {
-        TRI_voc_size_t _size;                 // 4 bytes, must be supplied
-        TRI_voc_crc_t _crc;                   // 4 bytes, will be generated
+        TRI_df_marker_t   base;
+  
+        TRI_voc_rid_t     _rid;          // 8 bytes, this is the tick for a create and update
+        voc_eid_t         _sid;          // 8 bytes 
 
-        TRI_df_marker_type_t _type;           // 4 bytes, must be supplied
+        TRI_shape_sid_t   _shape;        // 8 bytes 
+ 
+        uint16_t          _offsetKey;    // 2 bytes
+        uint16_t          _offsetJson;   // 2 bytes
 
 #ifdef TRI_PADDING_32
-        char _padding_df_marker[4];
+        char              _padding_df_marker[4];    // 4 bytes
 #endif
-
-        uint64_t _tick;
-      }
-      base_marker_t;
-
-////////////////////////////////////////////////////////////////////////////////
-/// @brief document marker used in 1.1
-////////////////////////////////////////////////////////////////////////////////
-
-      typedef struct {
-        base_marker_t base;
-
-        voc_did_t _did;        // this is the tick for a create, but not an update
-        TRI_voc_rid_t _rid;    // this is the tick for an create and update
-        voc_eid_t _sid;
-
-        TRI_shape_sid_t _shape;
       }
       doc_document_marker_t;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief edge marker used in 1.1
+/// @brief edge marker used in 1.2
 ////////////////////////////////////////////////////////////////////////////////
 
       typedef struct {
-        doc_document_marker_t base;
+        doc_document_marker_t  base;
 
-        TRI_voc_cid_t _toCid;
-        voc_did_t _toDid;
+        TRI_voc_cid_t          _toCid;
+        TRI_voc_cid_t          _fromCid;   
+  
+        uint16_t               _offsetToKey;   // 2 bytes
+        uint16_t               _offsetFromKey; // 2 bytes
 
-        TRI_voc_cid_t _fromCid;
-        voc_did_t _fromDid;
+#ifdef TRI_PADDING_32
+        char                   _padding_df_marker[4];    // 4 bytes
+#endif
       }
       doc_edge_marker_t;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief deletion marker used in 1.1
+/// @brief deletion marker used in 1.2
 ////////////////////////////////////////////////////////////////////////////////
 
       typedef struct {
-        base_marker_t base;
+        TRI_df_marker_t   base;
+  
+        TRI_voc_rid_t     _rid;      // 8 bytes, this is the tick for an create and update
+        voc_eid_t         _sid;      // 8 bytes
 
-        voc_did_t _did;        // this is the tick for a create, but not an update
-        TRI_voc_rid_t _rid;    // this is the tick for an create and update
-        voc_eid_t _sid;
+        uint16_t       _offsetKey;   // 2 bytes
       }
       doc_deletion_marker_t;
 
@@ -135,7 +128,7 @@ namespace triagens {
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief convert a 1.1 document marker
+/// @brief convert a 1.2 document marker
 ////////////////////////////////////////////////////////////////////////////////
 
       int64_t convertDocumentMarker (char* payload, 
@@ -145,7 +138,7 @@ namespace triagens {
                                      int fdout, 
                                      const TRI_server_id_t serverId) {
         *err = TRI_ERROR_NO_ERROR;
-
+/*
         doc_document_marker_t* oldMarker = (doc_document_marker_t*) payload;
 
         TRI_doc_document_key_marker_t newMarker;
@@ -168,7 +161,8 @@ namespace triagens {
         keyBody = (char*) TRI_Allocate(TRI_CORE_MEM_ZONE, keyBodySize, true);
         TRI_CopyString(keyBody, didBuffer, keySize);      
 
-        TRI_UpdateSequenceValueMarkerDatafile(&newMarker.base, oldMarker->_rid);
+        newMarker._rid = oldMarker->_rid;
+        newMarker._sid = oldMarker->_sid;
         newMarker._shape = oldMarker->_shape;
         newMarker._offsetKey = newMarkerSize;
         newMarker._offsetJson = newMarkerSize + keyBodySize;
@@ -195,10 +189,11 @@ namespace triagens {
         TRI_Free(TRI_CORE_MEM_ZONE, keyBody);
 
         return sizeof(newMarker) + keyBodySize + bodySizePadded;
+        */
       }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief convert a 1.1 edge marker
+/// @brief convert a 1.2 edge marker
 ////////////////////////////////////////////////////////////////////////////////
       
       int64_t convertEdgeMarker (char* payload, 
@@ -208,7 +203,7 @@ namespace triagens {
                                  int fdout, 
                                  const TRI_server_id_t serverId) {
         *err = TRI_ERROR_NO_ERROR;
-
+/*
         doc_edge_marker_t* oldMarker = (doc_edge_marker_t*) payload;            
 
         TRI_doc_edge_key_marker_t newMarker;
@@ -245,7 +240,8 @@ namespace triagens {
         TRI_CopyString(keyBody + keySize,          toDidBuffer,   toSize);      
         TRI_CopyString(keyBody + keySize + toSize, fromDidBuffer, fromSize);      
 
-        TRI_UpdateSequenceValueMarkerDatafile(&newMarker.base.base, oldMarker->base._rid);
+        newMarker.base._rid = oldMarker->base._rid;
+        newMarker.base._sid = oldMarker->base._sid;                        
         newMarker.base._shape = oldMarker->base._shape;
         newMarker.base._offsetKey = newMarkerSize;
         newMarker.base._offsetJson = newMarkerSize + keyBodySize;
@@ -277,6 +273,7 @@ namespace triagens {
         TRI_Free(TRI_CORE_MEM_ZONE, keyBody);
 
         return newMarkerSize + keyBodySize + bodySizePadded;
+        */
       }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -290,7 +287,7 @@ namespace triagens {
                                      int fdout, 
                                      const TRI_server_id_t serverId) {
         *err = TRI_ERROR_NO_ERROR;
-
+/*
         doc_deletion_marker_t* oldMarker = (doc_deletion_marker_t*) payload;                        
 
         TRI_doc_deletion_key_marker_t newMarker;
@@ -309,7 +306,9 @@ namespace triagens {
         keyBody = (char*) TRI_Allocate(TRI_CORE_MEM_ZONE, keyBodySize, true);
         TRI_CopyString(keyBody, didBuffer, keySize);      
 
-        TRI_UpdateSequenceValueMarkerDatafile(&newMarker.base, oldMarker->_rid);
+        newMarker._rid = oldMarker->_rid;
+        newMarker._sid = oldMarker->_sid;
+        newMarker._offsetKey = newMarkerSize;
             
         TRI_InitMarkerDatafile(&newMarker.base, newMarkerSize + keyBodySize, TRI_DOC_MARKER_KEY_DELETION, serverId, TRI_SEQUENCE_VALUE(oldMarker->base._tick));
         TRI_FillCrcKeyMarkerDatafile(df, &newMarker.base, newMarkerSize, keyBody, keyBodySize, NULL, 0);
@@ -329,6 +328,7 @@ namespace triagens {
         TRI_Free(TRI_CORE_MEM_ZONE, keyBody);
         
         return newMarker.base._size;
+        */
       }
 
 ////////////////////////////////////////////////////////////////////////////////
