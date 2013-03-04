@@ -95,6 +95,8 @@ extern "C" {
 ///   of the same name already exists.
 /// - 1109: @LIT{msync failed}
 ///   Will be raised when the system call msync failed.
+/// - 1110: @LIT{invalid version}
+///   Will be raised when a collection with the wrong version is accessed.
 /// - 1200: @LIT{conflict}
 ///   Will be raised when updating or deleting a document and a conflict has
 ///   been detected.
@@ -759,6 +761,16 @@ void TRI_InitialiseErrorMessages (void);
 ////////////////////////////////////////////////////////////////////////////////
 
 #define TRI_ERROR_ARANGO_MSYNC_FAILED                                     (1109)
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief 1110: ERROR_ARANGO_INVALID_COLLECTION_VERSION
+///
+/// invalid version
+///
+/// Will be raised when a collection with the wrong version is accessed.
+////////////////////////////////////////////////////////////////////////////////
+
+#define TRI_ERROR_ARANGO_INVALID_COLLECTION_VERSION                       (1110)
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief 1200: ERROR_ARANGO_CONFLICT

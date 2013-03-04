@@ -56,6 +56,7 @@
 #include "Utils/DocumentHelper.h"
 #include "Utils/EmbeddableTransaction.h"
 #include "Utils/Markers11.h"
+#include "Utils/Markers12.h"
 #include "Utils/SingleCollectionReadOnlyTransaction.h"
 #include "Utils/SingleCollectionWriteTransaction.h"
 #include "Utils/StandaloneTransaction.h"
@@ -3015,17 +3016,18 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
 #endif  
   TRI_col_version_t version = col->_info._version;
 
-  if (version >= 3) {
-    LOG_ERROR("Cannot upgrade collection '%s' with version '%d' in directory '%s'", name, version, col->_directory);
+  if (version >= 4) {
+    LOG_WARNING("Skipping upgrade of collection '%s' with version %d in directory '%s'", name, (int) version, col->_directory);
     ReleaseCollection(collection);
     return scope.Close(v8::False());
   }
   
-  LOG_INFO("Upgrading collection '%s' with version '%d' in directory '%s'", name, version, col->_directory);
+  LOG_INFO("Upgrading collection '%s' with version '%d' in directory '%s'", name, (int) version, col->_directory);
 
   // get all filenames
   TRI_vector_pointer_t files;
   TRI_InitVectorPointer(&files, TRI_UNKNOWN_MEM_ZONE);
+
   for (size_t i = 0; i < col->_datafiles._length; ++i) {
     TRI_datafile_t* df = (TRI_datafile_t*) TRI_AtVectorPointer(&col->_datafiles, i);
     TRI_PushBackVectorPointer(&files, df);
@@ -3130,18 +3132,18 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
         int err = TRI_ERROR_NO_ERROR;
 
         switch (marker._type) {
-          case TRI_DOC_MARKER_DOCUMENT: {
-            writtenSize += markers11::convertDocumentMarker(payload, paddedSize, &err, df, fdout, serverId);
+          case TRI_DOC_MARKER_KEY_DOCUMENT_12: {
+            writtenSize += markers12::convertDocumentMarker(payload, paddedSize, &err, df, fdout, serverId);
             break;
           }
             
-          case TRI_DOC_MARKER_EDGE: {
-            writtenSize += markers11::convertEdgeMarker(payload, paddedSize, &err, df, fdout, serverId);
+          case TRI_DOC_MARKER_KEY_EDGE_12: {
+            writtenSize += markers12::convertEdgeMarker(payload, paddedSize, &err, df, fdout, serverId);
             break;
           }
 
-          case TRI_DOC_MARKER_DELETION: {
-            writtenSize += markers11::convertDeletionMarker(payload, paddedSize, &err, df, fdout, serverId);
+          case TRI_DOC_MARKER_KEY_DELETION_12: {
+            writtenSize += markers12::convertDeletionMarker(payload, paddedSize, &err, df, fdout, serverId);
             break;
           }
 
@@ -5063,7 +5065,7 @@ static v8::Handle<v8::Value> JS_SetAttributeVocbaseCol (v8::Arguments const& arg
 
   TRI_WRITE_LOCK_STATUS_VOCBASE_COL(collection);
   TRI_col_info_t info;
-  int res = TRI_LoadCollectionInfo(collection->_path, &info);
+  int res = TRI_LoadCollectionInfo(collection->_path, &info, false);
 
   if (res == TRI_ERROR_NO_ERROR) {
     if (key == "type") {
@@ -5299,7 +5301,7 @@ static v8::Handle<v8::Value> JS_VersionVocbaseCol (v8::Arguments const& argv) {
   TRI_col_info_t info;
 
   TRI_READ_LOCK_STATUS_VOCBASE_COL(collection);
-  int res = TRI_LoadCollectionInfo(collection->_path, &info);
+  int res = TRI_LoadCollectionInfo(collection->_path, &info, false);
   TRI_READ_UNLOCK_STATUS_VOCBASE_COL(collection);
 
   TRI_FreeCollectionInfoOptions(&info);

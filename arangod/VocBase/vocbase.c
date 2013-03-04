@@ -893,7 +893,7 @@ static int ScanPath (TRI_vocbase_t* vocbase, char const* path) {
       }
 
       // no need to lock as we are scanning
-      res = TRI_LoadCollectionInfo(file, &info);
+      res = TRI_LoadCollectionInfo(file, &info, true);
 
       if (res == TRI_ERROR_NO_ERROR) {
         TRI_UpdateGlobalIdNoLockSequence((TRI_sequence_value_t) info._cid);
@@ -1942,7 +1942,7 @@ int TRI_DropCollectionVocBase (TRI_vocbase_t* vocbase, TRI_vocbase_col_t* collec
     TRI_col_info_t info;
     char* tmpFile;
 
-    res = TRI_LoadCollectionInfo(collection->_path, &info);
+    res = TRI_LoadCollectionInfo(collection->_path, &info, true);
 
     if (res != TRI_ERROR_NO_ERROR) {
       TRI_WRITE_UNLOCK_STATUS_VOCBASE_COL(collection);
@@ -2105,7 +2105,7 @@ int TRI_RenameCollectionVocBase (TRI_vocbase_t* vocbase, TRI_vocbase_col_t* coll
   // .............................................................................
 
   else if (collection->_status == TRI_VOC_COL_STATUS_UNLOADED) {
-    res = TRI_LoadCollectionInfo(collection->_path, &info);
+    res = TRI_LoadCollectionInfo(collection->_path, &info, true);
 
     if (res != TRI_ERROR_NO_ERROR) {
       TRI_WRITE_UNLOCK_COLLECTIONS_VOCBASE(vocbase);

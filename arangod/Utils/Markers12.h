@@ -138,37 +138,56 @@ namespace triagens {
                                      int fdout, 
                                      const TRI_server_id_t serverId) {
         *err = TRI_ERROR_NO_ERROR;
-/*
+
         doc_document_marker_t* oldMarker = (doc_document_marker_t*) payload;
 
         TRI_doc_document_key_marker_t newMarker;
         TRI_voc_size_t newMarkerSize = sizeof(TRI_doc_document_key_marker_t);
 
-        char* body = ((char*) oldMarker) + sizeof(doc_document_marker_t);
+        char* body = ((char*) oldMarker) + oldMarker->_offsetJson;
         TRI_voc_size_t bodySize = oldMarker->base._size - sizeof(doc_document_marker_t); 
         TRI_voc_size_t bodySizePadded = paddedSize - sizeof(doc_document_marker_t); 
             
         char* keyBody;
         TRI_voc_size_t keyBodySize; 
         TRI_voc_size_t keySize;
-
-        char didBuffer[33];  
-        memset(&newMarker, 0, newMarkerSize); 
-        sprintf(didBuffer, "%llu", (unsigned long long) oldMarker->_did);
-
-        keySize = strlen(didBuffer) + 1;
+        
+        char* oldKey = (char*) oldMarker + oldMarker->_offsetKey;
+        
+        keySize = strlen(oldKey) + 1;
         keyBodySize = TRI_DF_ALIGN_BLOCK(keySize);
         keyBody = (char*) TRI_Allocate(TRI_CORE_MEM_ZONE, keyBodySize, true);
-        TRI_CopyString(keyBody, didBuffer, keySize);      
+        TRI_CopyString(keyBody, oldKey, keySize);      
 
-        newMarker._rid = oldMarker->_rid;
-        newMarker._sid = oldMarker->_sid;
-        newMarker._shape = oldMarker->_shape;
-        newMarker._offsetKey = newMarkerSize;
+        TRI_sequence_value_t sequenceValue = TRI_SEQUENCE_VALUE(oldMarker->_rid);
+        newMarker._tid = sequenceValue;
+        TRI_UpdateGlobalIdSequence(sequenceValue);
+
+        newMarker._shape      = oldMarker->_shape;
+        newMarker._offsetKey  = newMarkerSize;
         newMarker._offsetJson = newMarkerSize + keyBodySize;
+        
+        LOG_DEBUG("found doc marker, type: %d, key: '%s', rid: %llu, size: %d, crc: %lu", 
+                  (int) oldMarker->base._type, 
+                  oldKey, 
+                  (unsigned long long)  oldMarker->_rid,
+                  (int) oldMarker->base._size,
+                  (unsigned long) oldMarker->base._crc);
            
-        TRI_InitMarkerDatafile(&newMarker.base, newMarkerSize + keyBodySize + bodySize, TRI_DOC_MARKER_KEY_DOCUMENT, serverId, TRI_SEQUENCE_VALUE(oldMarker->base._tick));
+        TRI_InitMarkerDatafile(&newMarker.base, newMarkerSize + keyBodySize + bodySize, TRI_DOC_MARKER_KEY_DOCUMENT, serverId, sequenceValue);
         TRI_FillCrcKeyMarkerDatafile(df, &newMarker.base, newMarkerSize, keyBody, keyBodySize, body, bodySize);
+        
+        LOG_DEBUG("new doc marker, type: %d, size: %d, serverId: %llu, sequenceValue: %llu, key: '%s', keyBodySize: %d, bodySize: %d, bodySizePadded: %d, tid: %llu, crc: %lu", 
+                  (int) newMarker.base._type, 
+                  (int) newMarker.base._size,
+                  (unsigned long long) serverId,
+                  (unsigned long long) sequenceValue,
+                  keyBody,
+                  (int) keyBodySize,
+                  (int) bodySize,
+                  (int) bodySizePadded,
+                  (unsigned long long) newMarker._tid,
+                  (unsigned long) newMarker.base._crc);
 
         ssize_t writeResult;
         writeResult = TRI_WRITE(fdout, &newMarker, sizeof(newMarker));
@@ -184,12 +203,9 @@ namespace triagens {
           *err = TRI_ERROR_INTERNAL;
         }
 
-        //LOG_INFO("found doc marker, type: '%d', did: '%d', rid: '%d', size: '%d', crc: '%d'", marker._type, oldMarker->_did, oldMarker->_rid,newMarker.base._size,newMarker.base._crc);
-
         TRI_Free(TRI_CORE_MEM_ZONE, keyBody);
 
         return sizeof(newMarker) + keyBodySize + bodySizePadded;
-        */
       }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -203,13 +219,13 @@ namespace triagens {
                                  int fdout, 
                                  const TRI_server_id_t serverId) {
         *err = TRI_ERROR_NO_ERROR;
-/*
+
         doc_edge_marker_t* oldMarker = (doc_edge_marker_t*) payload;            
 
         TRI_doc_edge_key_marker_t newMarker;
         TRI_voc_size_t newMarkerSize = sizeof(TRI_doc_edge_key_marker_t);
             
-        char* body = ((char*) oldMarker) + sizeof(doc_edge_marker_t);
+        char* body = ((char*) oldMarker) + oldMarker->base._offsetJson;
         TRI_voc_size_t bodySize = oldMarker->base.base._size - sizeof(doc_edge_marker_t); 
         TRI_voc_size_t bodySizePadded = paddedSize - sizeof(doc_edge_marker_t); 
             
@@ -219,29 +235,26 @@ namespace triagens {
         size_t keySize;
         size_t toSize;
         size_t fromSize;            
+           
+        char* oldKey = (char*) oldMarker + oldMarker->base._offsetKey;
+        char* toKey = (char*) oldMarker + oldMarker->_offsetToKey;
+        char* fromKey = (char*) oldMarker + oldMarker->_offsetFromKey;
             
-        char didBuffer[33];  
-        char toDidBuffer[33];  
-        char fromDidBuffer[33];  
-
-        memset(&newMarker, 0, newMarkerSize); 
-        sprintf(didBuffer,"%llu", (unsigned long long) oldMarker->base._did);
-        sprintf(toDidBuffer,"%llu", (unsigned long long) oldMarker->_toDid);
-        sprintf(fromDidBuffer,"%llu", (unsigned long long) oldMarker->_fromDid);
-            
-        keySize = strlen(didBuffer) + 1;
-        toSize = strlen(toDidBuffer) + 1;
-        fromSize = strlen(fromDidBuffer) + 1;
+        keySize = strlen(oldKey) + 1;
+        toSize = strlen(toKey) + 1;
+        fromSize = strlen(fromKey) + 1;
 
         keyBodySize = TRI_DF_ALIGN_BLOCK(keySize + toSize + fromSize);            
         keyBody = (char*) TRI_Allocate(TRI_CORE_MEM_ZONE, keyBodySize, true);
             
-        TRI_CopyString(keyBody,                    didBuffer,     keySize);      
-        TRI_CopyString(keyBody + keySize,          toDidBuffer,   toSize);      
-        TRI_CopyString(keyBody + keySize + toSize, fromDidBuffer, fromSize);      
+        TRI_CopyString(keyBody,                    oldKey,  keySize);      
+        TRI_CopyString(keyBody + keySize,          toKey,   toSize);      
+        TRI_CopyString(keyBody + keySize + toSize, fromKey, fromSize);      
+        
+        TRI_sequence_value_t sequenceValue = TRI_SEQUENCE_VALUE(oldMarker->base._rid);
+        newMarker.base._tid = sequenceValue;
+        TRI_UpdateGlobalIdSequence(sequenceValue);
 
-        newMarker.base._rid = oldMarker->base._rid;
-        newMarker.base._sid = oldMarker->base._sid;                        
         newMarker.base._shape = oldMarker->base._shape;
         newMarker.base._offsetKey = newMarkerSize;
         newMarker.base._offsetJson = newMarkerSize + keyBodySize;
@@ -250,8 +263,19 @@ namespace triagens {
         newMarker._offsetFromKey = newMarkerSize + keySize + toSize;
         newMarker._toCid = oldMarker->_toCid;
         newMarker._fromCid = oldMarker->_fromCid;
+        
+        LOG_DEBUG("found edge marker, type: %d, key: '%s', fromCid: %llu, fromKey: %s, toCid: %llu, toKey: %s, rid: %llu, size: %d, crc: %lu", 
+                  (int) oldMarker->base.base._type, 
+                  oldKey, 
+                  oldMarker->_fromCid,
+                  fromKey,
+                  oldMarker->_toCid,
+                  toKey,
+                  (unsigned long long) oldMarker->base._rid,
+                  (int) oldMarker->base.base._size,
+                  (unsigned long) oldMarker->base.base._crc);
             
-        TRI_InitMarkerDatafile(&newMarker.base.base, newMarkerSize + keyBodySize + bodySize, TRI_DOC_MARKER_KEY_EDGE, serverId, TRI_SEQUENCE_VALUE(oldMarker->base.base._tick));
+        TRI_InitMarkerDatafile(&newMarker.base.base, newMarkerSize + keyBodySize + bodySize, TRI_DOC_MARKER_KEY_EDGE, serverId, sequenceValue);
         TRI_FillCrcKeyMarkerDatafile(df, &newMarker.base.base, newMarkerSize, keyBody, keyBodySize, body, bodySize);
 
         ssize_t writeResult;
@@ -268,12 +292,9 @@ namespace triagens {
           *err = TRI_ERROR_INTERNAL;
         }
 
-        //LOG_INFO("found edge marker, type: '%d', did: '%d', rid: '%d', size: '%d', crc: '%d'", marker._type, oldMarker->base._did, oldMarker->base._rid,newMarker.base.base._size,newMarker.base.base._crc);
-
         TRI_Free(TRI_CORE_MEM_ZONE, keyBody);
 
         return newMarkerSize + keyBodySize + bodySizePadded;
-        */
       }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -287,7 +308,7 @@ namespace triagens {
                                      int fdout, 
                                      const TRI_server_id_t serverId) {
         *err = TRI_ERROR_NO_ERROR;
-/*
+
         doc_deletion_marker_t* oldMarker = (doc_deletion_marker_t*) payload;                        
 
         TRI_doc_deletion_key_marker_t newMarker;
@@ -297,22 +318,34 @@ namespace triagens {
         char* keyBody;
         TRI_voc_size_t keySize;
 
-        char didBuffer[33];  
-        memset(&newMarker, 0, newMarkerSize); 
-        sprintf(didBuffer, "%llu", (unsigned long long) oldMarker->_did);
-      
-        keySize = strlen(didBuffer) + 1;
+        char* oldKey = (char*) oldMarker + oldMarker->_offsetKey;
+
+        keySize = strlen(oldKey) + 1;
         keyBodySize = TRI_DF_ALIGN_BLOCK(keySize);
         keyBody = (char*) TRI_Allocate(TRI_CORE_MEM_ZONE, keyBodySize, true);
-        TRI_CopyString(keyBody, didBuffer, keySize);      
+        TRI_CopyString(keyBody, oldKey, keySize);      
 
-        newMarker._rid = oldMarker->_rid;
-        newMarker._sid = oldMarker->_sid;
-        newMarker._offsetKey = newMarkerSize;
-            
-        TRI_InitMarkerDatafile(&newMarker.base, newMarkerSize + keyBodySize, TRI_DOC_MARKER_KEY_DELETION, serverId, TRI_SEQUENCE_VALUE(oldMarker->base._tick));
+        TRI_sequence_value_t sequenceValue = TRI_SEQUENCE_VALUE(oldMarker->_rid);
+        newMarker._tid = sequenceValue;
+        TRI_UpdateGlobalIdSequence(sequenceValue);
+        
+        LOG_DEBUG("found deletion marker, type: %d, key: '%s', rid: %llu", 
+                  (int) oldMarker->base._type, 
+                  oldKey,
+                  (unsigned long long) oldMarker->_rid);
+        
+        TRI_InitMarkerDatafile(&newMarker.base, newMarkerSize + keyBodySize, TRI_DOC_MARKER_KEY_DELETION, serverId, sequenceValue);
         TRI_FillCrcKeyMarkerDatafile(df, &newMarker.base, newMarkerSize, keyBody, keyBodySize, NULL, 0);
-
+        
+        LOG_DEBUG("new deletion marker, type: %d, size: %d, serverId: %llu, sequenceValue: %llu, key: '%s', tid: %llu, crc: %lu", 
+                  (int) newMarker.base._type, 
+                  (int) newMarker.base._size, 
+                  (unsigned long long) serverId,
+                  (unsigned long long) sequenceValue,
+                  keyBody,
+                  (unsigned long long) newMarker._tid,
+                  (unsigned long) newMarker.base._crc);
+            
         ssize_t writeResult;
         writeResult = TRI_WRITE(fdout, &newMarker, newMarkerSize);
         if (writeResult == 0) {
@@ -323,12 +356,9 @@ namespace triagens {
           *err = TRI_ERROR_INTERNAL;
         }
 
-        //LOG_INFO("found deletion marker, type: '%d', did: '%d', rid: '%d'", marker._type, oldMarker->_did, oldMarker->_rid);
-
         TRI_Free(TRI_CORE_MEM_ZONE, keyBody);
         
         return newMarker.base._size;
-        */
       }
 
 ////////////////////////////////////////////////////////////////////////////////

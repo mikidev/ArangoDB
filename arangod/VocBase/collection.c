@@ -862,7 +862,9 @@ void TRI_UpdateRevisionCollection (TRI_collection_t* collection,
 /// function.
 ////////////////////////////////////////////////////////////////////////////////
 
-int TRI_LoadCollectionInfo (char const* path, TRI_col_info_t* parameter) {
+int TRI_LoadCollectionInfo (char const* path, 
+                            TRI_col_info_t* parameter, 
+                            const bool versionWarning) {
   TRI_json_t* json;
   char* filename;
   char* error = NULL;
@@ -899,12 +901,13 @@ int TRI_LoadCollectionInfo (char const* path, TRI_col_info_t* parameter) {
     return TRI_set_errno(TRI_ERROR_ARANGO_ILLEGAL_PARAMETER_FILE);
   }
 
-  TRI_FreeString(TRI_CORE_MEM_ZONE, filename);
-
   if (json->_type != TRI_JSON_ARRAY) {
     LOG_ERROR("cannot open '%s', file does not contain a json array", filename);
+    TRI_FreeString(TRI_CORE_MEM_ZONE, filename);
     return TRI_set_errno(TRI_ERROR_ARANGO_ILLEGAL_PARAMETER_FILE);
   }
+  
+  TRI_FreeString(TRI_CORE_MEM_ZONE, filename);
 
   // convert json
   n = json->_value._objects._length;
@@ -959,6 +962,17 @@ int TRI_LoadCollectionInfo (char const* path, TRI_col_info_t* parameter) {
   }
 
   TRI_FreeJson(TRI_UNKNOWN_MEM_ZONE, json);
+  
+  // warn about wrong version of the collection
+  if (versionWarning && 
+      parameter->_type != TRI_COL_TYPE_SHAPE && 
+      parameter->_version < TRI_COL_VERSION) {
+    if (parameter->_name != NULL) {
+      // only warn if the collection version is older than expected, and if it's not a shape collection
+      LOG_WARNING("collection '%s' has an old version and needs to be upgraded.", parameter->_name);
+    }
+  }
+
   return TRI_ERROR_NO_ERROR;
 }
 
@@ -1209,7 +1223,7 @@ TRI_collection_t* TRI_OpenCollection (TRI_vocbase_t* vocbase,
   }
 
   // read parameter block, no need to lock as we are opening the collection
-  res = TRI_LoadCollectionInfo(path, &info);
+  res = TRI_LoadCollectionInfo(path, &info, true);
 
   if (res != TRI_ERROR_NO_ERROR) {
     LOG_ERROR("cannot load collection parameter '%s': '%s'", path, TRI_last_error());

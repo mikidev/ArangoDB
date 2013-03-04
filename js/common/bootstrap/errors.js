@@ -54,6 +54,7 @@
     "ERROR_ARANGO_DATABASE_LOCKED" : { "code" : 1107, "message" : "database is locked" }, 
     "ERROR_ARANGO_COLLECTION_DIRECTORY_ALREADY_EXISTS" : { "code" : 1108, "message" : "cannot create/rename collection because directory already exists" }, 
     "ERROR_ARANGO_MSYNC_FAILED"    : { "code" : 1109, "message" : "msync failed" }, 
+    "ERROR_ARANGO_INVALID_COLLECTION_VERSION" : { "code" : 1110, "message" : "invalid version" }, 
     "ERROR_ARANGO_CONFLICT"        : { "code" : 1200, "message" : "conflict" }, 
     "ERROR_ARANGO_WRONG_VOCBASE_PATH" : { "code" : 1201, "message" : "wrong path for database" }, 
     "ERROR_ARANGO_DOCUMENT_NOT_FOUND" : { "code" : 1202, "message" : "document not found" }, 

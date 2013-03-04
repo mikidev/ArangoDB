@@ -377,7 +377,8 @@ TRI_doc_edge_key_marker_t;
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef struct TRI_doc_deletion_key_marker_s {
-  TRI_df_marker_t       base;
+  TRI_df_marker_t        base;
+  TRI_sequence_value_t   _tid;
 }
 TRI_doc_deletion_key_marker_t;
 
@@ -387,7 +388,6 @@ TRI_doc_deletion_key_marker_t;
 
 typedef struct TRI_doc_begin_transaction_marker_s {
   TRI_df_marker_t        base;
-
   TRI_sequence_value_t   _tid;
 }
 TRI_doc_begin_transaction_marker_t;
@@ -398,7 +398,6 @@ TRI_doc_begin_transaction_marker_t;
 
 typedef struct TRI_doc_commit_transaction_marker_s {
   TRI_df_marker_t        base;
-
   TRI_sequence_value_t   _tid;
 }
 TRI_doc_commit_transaction_marker_t;
@@ -409,7 +408,6 @@ TRI_doc_commit_transaction_marker_t;
 
 typedef struct TRI_doc_abort_transaction_marker_s {
   TRI_df_marker_t        base;
-
   TRI_sequence_value_t   _tid;
 }
 TRI_doc_abort_transaction_marker_t;

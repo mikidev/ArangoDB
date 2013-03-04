@@ -110,7 +110,7 @@ struct TRI_json_s;
 /// @brief collection version
 ////////////////////////////////////////////////////////////////////////////////
 
-#define TRI_COL_VERSION         (3)
+#define TRI_COL_VERSION         (4)
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief collection meta info filename
@@ -168,10 +168,10 @@ TRI_col_file_structure_t;
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef enum {
-  TRI_COL_STATE_CLOSED = 1,        // collection is closed
-  TRI_COL_STATE_READ = 2,          // collection is opened read only
-  TRI_COL_STATE_WRITE = 3,         // collection is opened read/append
-  TRI_COL_STATE_OPEN_ERROR = 4,    // an error has occurred while opening
+  TRI_COL_STATE_CLOSED      = 1,   // collection is closed
+  TRI_COL_STATE_READ        = 2,   // collection is opened read only
+  TRI_COL_STATE_WRITE       = 3,   // collection is opened read/append
+  TRI_COL_STATE_OPEN_ERROR  = 4,   // an error has occurred while opening
   TRI_COL_STATE_WRITE_ERROR = 5    // an error has occurred while writing
 }
 TRI_col_state_e;
@@ -187,9 +187,9 @@ typedef uint32_t TRI_col_version_t;
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef enum {
-  TRI_COL_TYPE_SHAPE = 1,
+  TRI_COL_TYPE_SHAPE    = 1,
   TRI_COL_TYPE_DOCUMENT = 2,
-  TRI_COL_TYPE_EDGE = 3
+  TRI_COL_TYPE_EDGE     = 3
 }
 TRI_col_type_e;
 
@@ -349,7 +349,8 @@ void TRI_UpdateRevisionCollection (TRI_collection_t*,
 ////////////////////////////////////////////////////////////////////////////////
 
 int TRI_LoadCollectionInfo (char const*, 
-                            TRI_col_info_t*);
+                            TRI_col_info_t*,
+                            const bool);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief saves a parameter info block to file

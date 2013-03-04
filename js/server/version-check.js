@@ -236,7 +236,7 @@
 
         return true;
       });
-    
+
     // create the collection "_modules"
     addTask("createModules", "setup _modules collection", function () {
       return createSystemCollection("_modules");
@@ -290,6 +290,43 @@
             if (collection.upgrade()) {
               // success
               collection.setAttribute("version", 3);
+            }
+            else {
+              // fail
+              console.error("could not upgrade collection datafiles for '"
+                            + collection.name() + "'");
+              return false;
+            }
+          }
+          catch (e) {
+            console.error("could not upgrade collection datafiles for '" 
+                          + collection.name() + "'");
+            return false;
+          }
+        }
+      }
+
+      return true;
+    });
+
+    // update markers in all collection datafiles to transactional markers
+    addTask("upgradeMarkers13", "update markers in all collection datafiles", function () {
+      var collections = db._collections();
+      var i;
+      
+      for (i in collections) {
+        if (collections.hasOwnProperty(i)) {
+          var collection = collections[i];
+
+          try {
+            if (collection.version() >= 4) {
+              // already upgraded
+              continue;
+            }
+
+            if (collection.upgrade()) {
+              // success
+              collection.setAttribute("version", 4);
             }
             else {
               // fail

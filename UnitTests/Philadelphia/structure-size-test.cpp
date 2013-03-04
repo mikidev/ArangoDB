@@ -203,8 +203,11 @@ BOOST_AUTO_TEST_CASE (tst_doc_edge_key_marker) {
 BOOST_AUTO_TEST_CASE (tst_doc_deletion_key_marker) {
   size_t s = sizeof(TRI_doc_deletion_key_marker_t);
 
-  BOOST_CHECK_EQUAL(24 + 0, s); // base + own size
+  BOOST_CHECK_EQUAL(24 + 8, s); // base + own size
   BOOST_CHECK_EQUAL(true, s % 8 == 0); 
+  
+  BOOST_CHECK_EQUAL( 0, offsetof(struct TRI_doc_deletion_key_marker_s, base));
+  BOOST_CHECK_EQUAL(24, offsetof(struct TRI_doc_deletion_key_marker_s, _tid));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
