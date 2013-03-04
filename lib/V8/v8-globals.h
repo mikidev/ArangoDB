@@ -460,7 +460,7 @@ TRI_v8_global_t;
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief add a method to a prototype object
+/// @brief adds a method to a prototype object
 ////////////////////////////////////////////////////////////////////////////////
 
 void TRI_AddProtoMethodVocbase (v8::Handle<v8::Template> tpl, 
@@ -469,7 +469,7 @@ void TRI_AddProtoMethodVocbase (v8::Handle<v8::Template> tpl,
                                 const bool isHidden = false);
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief add a method to an object
+/// @brief adds a method to an object
 ////////////////////////////////////////////////////////////////////////////////
 
 void TRI_AddMethodVocbase (v8::Handle<v8::ObjectTemplate> tpl, 
@@ -478,7 +478,7 @@ void TRI_AddMethodVocbase (v8::Handle<v8::ObjectTemplate> tpl,
                            const bool isHidden = false);
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief add a global function to the given context
+/// @brief adds a global function to the given context
 ////////////////////////////////////////////////////////////////////////////////
   
 void TRI_AddGlobalFunctionVocbase (v8::Handle<v8::Context> context, 
@@ -486,12 +486,20 @@ void TRI_AddGlobalFunctionVocbase (v8::Handle<v8::Context> context,
                                    v8::Handle<v8::Value>(*func)(v8::Arguments const&));
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief add a global function to the given context
+/// @brief adds a global function to the given context
 ////////////////////////////////////////////////////////////////////////////////
 
 void TRI_AddGlobalFunctionVocbase (v8::Handle<v8::Context> context, 
                                    const char* const name, 
                                    v8::Handle<v8::Function> func);
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief adds a global variable to the given context
+////////////////////////////////////////////////////////////////////////////////
+
+void TRI_AddGlobalVariableVocbase (v8::Handle<v8::Context> context,
+                                   const char* const name,
+                                   v8::Handle<v8::Value> value);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @}

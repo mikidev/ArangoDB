@@ -633,6 +633,11 @@ static int UpdateDocument (TRI_doc_operation_context_t* context,
 
   int res;
 
+  if (mptr != NULL) {
+    mptr->_key = NULL;
+    mptr->_data = NULL;
+  }
+
   // .............................................................................
   // check the revision
   // .............................................................................

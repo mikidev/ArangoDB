@@ -44,6 +44,7 @@
 #include "Admin/ApplicationAdminServer.h"
 #include "Admin/RestHandlerCreator.h"
 #include "Basics/FileUtils.h"
+#include "Basics/Nonce.h"
 #include "Basics/ProgramOptions.h"
 #include "Basics/ProgramOptionsDescription.h"
 #include "Basics/RandomGenerator.h"
@@ -61,8 +62,6 @@
 #include "Logger/Logger.h"
 #include "Rest/InitialiseRest.h"
 #include "Rest/OperationMode.h"
-#include "RestHandler/ConnectionStatisticsHandler.h"
-#include "RestHandler/RequestStatisticsHandler.h"
 #include "RestHandler/RestBatchHandler.h"
 #include "RestHandler/RestDocumentHandler.h"
 #include "RestHandler/RestEdgeHandler.h"
@@ -143,15 +142,6 @@ static void DefineAdminHandlers (HttpHandlerFactory* factory,
 
   // add admin handlers
   admin->addHandlers(factory, "/_admin");
-
-  // add statistics
-  factory->addHandler("/_admin/connection-statistics",
-                      RestHandlerCreator<ConnectionStatisticsHandler>::createNoData,
-                      0);
-
-  factory->addHandler("/_admin/request-statistics",
-                      RestHandlerCreator<RequestStatisticsHandler>::createNoData,
-                      0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -419,7 +409,15 @@ void ArangoServer::buildApplicationServer () {
   else {
     LOGGER_INFO("using default language '" << Utf8Helper::DefaultUtf8Helper.getCollatorLanguage() << "'" );        
   }
- 
+
+  // .............................................................................
+  // init nonces
+  // .............................................................................
+  
+  uint32_t optionNonceHashSize = 16777216UL;
+  LOGGER_INFO("setting nonce hash size to '" << optionNonceHashSize << "'" );        
+  Nonce::create(16777216UL);
+  
   // .............................................................................
   // disable access to the HTML admin interface
   // .............................................................................
@@ -429,7 +427,7 @@ void ArangoServer::buildApplicationServer () {
   }
 
   if (disableStatistics) {
-    TRI_DisableStatistics();
+    TRI_ENABLE_STATISTICS =  false;
   }
 
   if (_defaultMaximalSize < TRI_JOURNAL_MINIMAL_SIZE) {
@@ -586,12 +584,6 @@ int ArangoServer::startupServer () {
                                    RestHandlerCreator<RestActionHandler>::createData<RestActionHandler::action_options_t*>,
                                    (void*) &httpOptions);
 
-  
-  // .............................................................................
-  // start the statistics collector thread
-  // .............................................................................
-      
-  TRI_InitialiseStatistics();
   
   // .............................................................................
   // start the main event loop
@@ -1090,7 +1082,9 @@ void ArangoServer::closeDatabase () {
   TRI_Free(TRI_UNKNOWN_MEM_ZONE, _vocbase);
   _vocbase = 0;
   TRI_ShutdownVocBase();
-
+  
+  Nonce::destroy();
+  
   LOGGER_INFO("ArangoDB has been shut down");
 }
 
