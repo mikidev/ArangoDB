@@ -3127,19 +3127,21 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
           break;
         }
 
+        int err = TRI_ERROR_NO_ERROR;
+
         switch (marker._type) {
           case TRI_DOC_MARKER_DOCUMENT: {
-            writtenSize += markers11::convertDocumentMarker(payload, paddedSize, df, fdout, serverId);
+            writtenSize += markers11::convertDocumentMarker(payload, paddedSize, &err, df, fdout, serverId);
             break;
           }
             
           case TRI_DOC_MARKER_EDGE: {
-            writtenSize += markers11::convertEdgeMarker(payload, paddedSize, df, fdout, serverId);
+            writtenSize += markers11::convertEdgeMarker(payload, paddedSize, &err, df, fdout, serverId);
             break;
           }
 
           case TRI_DOC_MARKER_DELETION: {
-            writtenSize += markers11::convertDeletionMarker(payload, paddedSize, df, fdout, serverId);
+            writtenSize += markers11::convertDeletionMarker(payload, paddedSize, &err, df, fdout, serverId);
             break;
           }
 
@@ -3154,6 +3156,10 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
         }
 
         delete [] payload;
+
+        if (err != TRI_ERROR_NO_ERROR) {
+          LOG_ERROR("Could not convert data from file '%s' while upgrading collection '%s'.", df->_filename, name);
+        }
       }
       else if (bytesRead == 0) {
         // eof
@@ -3161,7 +3167,7 @@ static v8::Handle<v8::Value> JS_UpgradeVocbaseCol (v8::Arguments const& argv) {
       }
       else {
         LOG_ERROR("Could not read data from file '%s' while upgrading collection '%s'.", df->_filename, name);
-        LOG_ERROR("Remove collection manually.");
+        LOG_ERROR("Please remove collection manually.");
         TRI_CLOSE(fd);
         TRI_CLOSE(fdout);
 

@@ -32,6 +32,14 @@
 #include "VocBase/vocbase.h"
 
 // -----------------------------------------------------------------------------
+// --SECTION--                                           Arango 1.1 marker types
+// -----------------------------------------------------------------------------
+
+namespace triagens {
+  namespace arango {
+    namespace markers11 {
+
+// -----------------------------------------------------------------------------
 // --SECTION--                                                      public types
 // -----------------------------------------------------------------------------
 
@@ -41,15 +49,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief marker types used in ArangoDB 1.1
+/// @brief document id type used in 1.1
 ////////////////////////////////////////////////////////////////////////////////
-
-namespace triagens {
-  namespace arango {
-    namespace markers11 {
 
       typedef uint64_t voc_did_t;
 
+////////////////////////////////////////////////////////////////////////////////
+/// @brief base marker used in 1.1
+////////////////////////////////////////////////////////////////////////////////
 
       typedef struct {
         TRI_voc_size_t _size;                 // 4 bytes, must be supplied
@@ -63,11 +70,14 @@ namespace triagens {
 
         uint64_t _tick;
       }
-      base_marker_t_deprecated;
+      base_marker_t;
 
+////////////////////////////////////////////////////////////////////////////////
+/// @brief document marker used in 1.1
+////////////////////////////////////////////////////////////////////////////////
 
       typedef struct {
-        base_marker_t_deprecated base;
+        base_marker_t base;
 
         voc_did_t _did;        // this is the tick for a create, but not an update
         TRI_voc_rid_t _rid;    // this is the tick for an create and update
@@ -75,11 +85,14 @@ namespace triagens {
 
         TRI_shape_sid_t _shape;
       }
-      doc_document_marker_t_deprecated;
+      doc_document_marker_t;
 
+////////////////////////////////////////////////////////////////////////////////
+/// @brief edge marker used in 1.1
+////////////////////////////////////////////////////////////////////////////////
 
       typedef struct {
-        doc_document_marker_t_deprecated base;
+        doc_document_marker_t base;
 
         TRI_voc_cid_t _toCid;
         voc_did_t _toDid;
@@ -87,28 +100,54 @@ namespace triagens {
         TRI_voc_cid_t _fromCid;
         voc_did_t _fromDid;
       }
-      doc_edge_marker_t_deprecated;
+      doc_edge_marker_t;
 
+////////////////////////////////////////////////////////////////////////////////
+/// @brief deletion marker used in 1.1
+////////////////////////////////////////////////////////////////////////////////
 
       typedef struct {
-        base_marker_t_deprecated base;
+        base_marker_t base;
 
         voc_did_t _did;        // this is the tick for a create, but not an update
         TRI_voc_rid_t _rid;    // this is the tick for an create and update
         TRI_voc_eid_t _sid;
       }
-      doc_deletion_marker_t_deprecated;
+      doc_deletion_marker_t;
 
+////////////////////////////////////////////////////////////////////////////////
+/// @}
+////////////////////////////////////////////////////////////////////////////////
 
-      int64_t convertDocumentMarker (char* payload, const off_t paddedSize, TRI_datafile_t* df, int fdout, const TRI_server_id_t serverId) {
-        doc_document_marker_t_deprecated* oldMarker = (doc_document_marker_t_deprecated*) payload;
+// -----------------------------------------------------------------------------
+// --SECTION--                                                  public functions
+// -----------------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////////////
+/// @addtogroup VocBase
+/// @{
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief convert a 1.1 document marker
+////////////////////////////////////////////////////////////////////////////////
+
+      int64_t convertDocumentMarker (char* payload, 
+                                     const off_t paddedSize, 
+                                     int* err,
+                                     TRI_datafile_t* df, 
+                                     int fdout, 
+                                     const TRI_server_id_t serverId) {
+        *err = TRI_ERROR_NO_ERROR;
+
+        doc_document_marker_t* oldMarker = (doc_document_marker_t*) payload;
 
         TRI_doc_document_key_marker_t newMarker;
         TRI_voc_size_t newMarkerSize = sizeof(TRI_doc_document_key_marker_t);
 
-        char* body = ((char*) oldMarker) + sizeof(doc_document_marker_t_deprecated);
-        TRI_voc_size_t bodySize = oldMarker->base._size - sizeof(doc_document_marker_t_deprecated); 
-        TRI_voc_size_t bodySizePadded = paddedSize - sizeof(doc_document_marker_t_deprecated); 
+        char* body = ((char*) oldMarker) + sizeof(doc_document_marker_t);
+        TRI_voc_size_t bodySize = oldMarker->base._size - sizeof(doc_document_marker_t); 
+        TRI_voc_size_t bodySizePadded = paddedSize - sizeof(doc_document_marker_t); 
             
         char* keyBody;
         TRI_voc_size_t keyBodySize; 
@@ -134,8 +173,17 @@ namespace triagens {
 
         ssize_t writeResult;
         writeResult = TRI_WRITE(fdout, &newMarker, sizeof(newMarker));
+        if (writeResult == 0) {
+          *err = TRI_ERROR_INTERNAL;
+        }
         writeResult = TRI_WRITE(fdout, keyBody, keyBodySize);
+        if (writeResult == 0) {
+          *err = TRI_ERROR_INTERNAL;
+        }
         writeResult = TRI_WRITE(fdout, body, bodySizePadded);
+        if (writeResult == 0) {
+          *err = TRI_ERROR_INTERNAL;
+        }
 
         //LOG_INFO("found doc marker, type: '%d', did: '%d', rid: '%d', size: '%d', crc: '%d'", marker._type, oldMarker->_did, oldMarker->_rid,newMarker.base._size,newMarker.base._crc);
 
@@ -143,16 +191,27 @@ namespace triagens {
 
         return sizeof(newMarker) + keyBodySize + bodySizePadded;
       }
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief convert a 1.1 edge marker
+////////////////////////////////////////////////////////////////////////////////
       
-      int64_t convertEdgeMarker (char* payload, const off_t paddedSize, TRI_datafile_t* df, int fdout, const TRI_server_id_t serverId) {
-        doc_edge_marker_t_deprecated* oldMarker = (doc_edge_marker_t_deprecated*) payload;            
+      int64_t convertEdgeMarker (char* payload, 
+                                 const off_t paddedSize, 
+                                 int* err,
+                                 TRI_datafile_t* df, 
+                                 int fdout, 
+                                 const TRI_server_id_t serverId) {
+        *err = TRI_ERROR_NO_ERROR;
+
+        doc_edge_marker_t* oldMarker = (doc_edge_marker_t*) payload;            
 
         TRI_doc_edge_key_marker_t newMarker;
         TRI_voc_size_t newMarkerSize = sizeof(TRI_doc_edge_key_marker_t);
             
-        char* body = ((char*) oldMarker) + sizeof(doc_edge_marker_t_deprecated);
-        TRI_voc_size_t bodySize = oldMarker->base.base._size - sizeof(doc_edge_marker_t_deprecated); 
-        TRI_voc_size_t bodySizePadded = paddedSize - sizeof(doc_edge_marker_t_deprecated); 
+        char* body = ((char*) oldMarker) + sizeof(doc_edge_marker_t);
+        TRI_voc_size_t bodySize = oldMarker->base.base._size - sizeof(doc_edge_marker_t); 
+        TRI_voc_size_t bodySizePadded = paddedSize - sizeof(doc_edge_marker_t); 
             
         char* keyBody;
         TRI_voc_size_t keyBodySize;
@@ -197,8 +256,17 @@ namespace triagens {
 
         ssize_t writeResult;
         writeResult = TRI_WRITE(fdout, &newMarker, newMarkerSize);
+        if (writeResult == 0) {
+          *err = TRI_ERROR_INTERNAL;
+        }
         writeResult = TRI_WRITE(fdout, keyBody, keyBodySize);
+        if (writeResult == 0) {
+          *err = TRI_ERROR_INTERNAL;
+        }
         writeResult = TRI_WRITE(fdout, body, bodySizePadded);
+        if (writeResult == 0) {
+          *err = TRI_ERROR_INTERNAL;
+        }
 
         //LOG_INFO("found edge marker, type: '%d', did: '%d', rid: '%d', size: '%d', crc: '%d'", marker._type, oldMarker->base._did, oldMarker->base._rid,newMarker.base.base._size,newMarker.base.base._crc);
 
@@ -207,8 +275,19 @@ namespace triagens {
         return newMarkerSize + keyBodySize + bodySizePadded;
       }
 
-      int64_t convertDeletionMarker (char* payload, const off_t paddedSize, TRI_datafile_t* df, int fdout, const TRI_server_id_t serverId) {
-        doc_deletion_marker_t_deprecated* oldMarker = (doc_deletion_marker_t_deprecated*) payload;                        
+////////////////////////////////////////////////////////////////////////////////
+/// @brief convert a 1.1 deletion marker
+////////////////////////////////////////////////////////////////////////////////
+
+      int64_t convertDeletionMarker (char* payload, 
+                                     const off_t paddedSize, 
+                                     int* err,
+                                     TRI_datafile_t* df, 
+                                     int fdout, 
+                                     const TRI_server_id_t serverId) {
+        *err = TRI_ERROR_NO_ERROR;
+
+        doc_deletion_marker_t* oldMarker = (doc_deletion_marker_t*) payload;                        
 
         TRI_doc_deletion_key_marker_t newMarker;
         TRI_voc_size_t newMarkerSize = sizeof(TRI_doc_deletion_key_marker_t);
@@ -235,7 +314,13 @@ namespace triagens {
 
         ssize_t writeResult;
         writeResult = TRI_WRITE(fdout, &newMarker, newMarkerSize);
+        if (writeResult == 0) {
+          *err = TRI_ERROR_INTERNAL;
+        }
         writeResult = TRI_WRITE(fdout, (char*) keyBody, keyBodySize);
+        if (writeResult == 0) {
+          *err = TRI_ERROR_INTERNAL;
+        }
 
         //LOG_INFO("found deletion marker, type: '%d', did: '%d', rid: '%d'", marker._type, oldMarker->_did, oldMarker->_rid);
 
@@ -244,13 +329,14 @@ namespace triagens {
         return newMarker.base._size;
       }
 
+////////////////////////////////////////////////////////////////////////////////
+/// @}
+////////////////////////////////////////////////////////////////////////////////
+
     }
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// @}
-////////////////////////////////////////////////////////////////////////////////
 
 #endif
 
