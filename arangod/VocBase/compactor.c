@@ -174,6 +174,7 @@ static void RemoveDatafileCallback (TRI_datafile_t* datafile, void* data) {
 #ifdef TRI_ENABLE_LOGGER
   old = datafile->_filename;
 #endif  
+
   ok = TRI_RenameDatafile(datafile, filename);
 
   if (! ok) {
@@ -292,7 +293,10 @@ static bool Compactifier (TRI_df_marker_t const* marker, void* data, TRI_datafil
 
     cnv.c = found;
     cnv.v->_fid = datafile->_fid;
+
+    // let marker point to the new position
     cnv.v->_data = result;
+
     // let _key point to the new key position
     cnv.v->_key = ((char*) result) + (((TRI_doc_document_key_marker_t*) result)->_offsetKey);
 
