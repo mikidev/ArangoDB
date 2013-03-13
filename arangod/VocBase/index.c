@@ -891,144 +891,64 @@ void TRI_FreeEdgeIndex (TRI_index_t* idx) {
 ////////////////////////////////////////////////////////////////////////////////
 
 static int PriorityQueueIndexHelper (const TRI_priorityqueue_index_t* pqIndex, 
-                                     PQIndexElement* pqElement,
-                                     const TRI_doc_mptr_t* document,
-                                     const TRI_shaped_json_t* shapedDoc) {
-  union { void* p; void const* c; } cnv;
+                                     TRI_pq_index_element_t* pqElement,
+                                     const TRI_doc_mptr_t* document) {
   TRI_shaped_json_t shapedObject;
   TRI_shape_access_t const* acc;
   size_t j;
   
-  // ............................................................................
-  // TODO: allow documents to be indexed on other keys (attributes) besides
-  // doubles. For now, documents which do have an attribute of double, will be
-  // be skipped. We return -2 to indicate this.
-  // ............................................................................
-  
-  if (shapedDoc != NULL) {
+  // ..........................................................................
+  // Assign the document to the TRI_pq_index_element_t structure - so that it can later
+  // be retreived.
+  // ..........................................................................
 
-    // ..........................................................................
-    // Attempting to locate a priority queue entry using TRI_shaped_json_t object. 
-    // Use this when we wish to remove a priority queue entry and we only have 
-    // the "keys" rather than having the document (from which the keys would follow).
-    // ..........................................................................
-    
-    pqElement->data = NULL;
-
-    
-
-    for (j = 0; j < pqIndex->_paths._length; ++j) {
-      TRI_shape_pid_t shape = *((TRI_shape_pid_t*)(TRI_AtVector(&pqIndex->_paths,j)));
-      
-      // ..........................................................................
-      // Determine if document has that particular shape 
-      // ..........................................................................
-
-      acc = TRI_FindAccessorVocShaper(pqIndex->base._collection->_shaper, shapedDoc->_sid, shape);
-
-      // the attribute does not exist in the document
-      if (acc == NULL || acc->_shape == NULL) {
-        TRI_Free(TRI_UNKNOWN_MEM_ZONE, pqElement->fields);
-        return -1;
-      }  
-     
-      // ..........................................................................
-      // Determine if the attribute is of the type double -- if not for now
-      // ignore this document
-      // ..........................................................................
-
-      if (acc->_shape->_type !=  TRI_SHAPE_NUMBER) {
-        TRI_Free(TRI_UNKNOWN_MEM_ZONE, pqElement->fields);
-        return -2;    
-      }    
-    
-      // ..........................................................................
-      // Extract the field
-      // ..........................................................................    
-
-      if (! TRI_ExecuteShapeAccessor(acc, shapedDoc, &shapedObject)) {
-        TRI_Free(TRI_UNKNOWN_MEM_ZONE, pqElement->fields);
-        return TRI_set_errno(TRI_ERROR_INTERNAL);
-      }
-      
-      // ..........................................................................
-      // Store the json shaped Object -- this is what will be hashed
-      // ..........................................................................    
-
-      pqElement->fields[j] = shapedObject;
-    }
-  }
-  
-  else if (document != NULL) {
-  
-    // ..........................................................................
-    // Assign the document to the PQIndexElement structure - so that it can later
-    // be retreived.
-    // ..........................................................................
-
-    cnv.c = document;
-    pqElement->data = cnv.p;
+  pqElement->_document = CONST_CAST(document);
  
-    for (j = 0; j < pqIndex->_paths._length; ++j) {
-      TRI_shaped_json_t shapedJson;
-      TRI_shape_pid_t shape = *((TRI_shape_pid_t*)(TRI_AtVector(&pqIndex->_paths,j)));
+  for (j = 0; j < pqIndex->_paths._length; ++j) {
+    TRI_shaped_json_t shapedJson;
+    TRI_shape_pid_t shape = *((TRI_shape_pid_t*)(TRI_AtVector(&pqIndex->_paths,j)));
       
-      // ..........................................................................
-      // Determine if document has that particular shape 
-      // It is not an error if the document DOES NOT have the particular shape
-      // ..........................................................................
+    // ..........................................................................
+    // Determine if document has that particular shape 
+    // It is not an error if the document DOES NOT have the particular shape
+    // ..........................................................................
 
-      TRI_EXTRACT_SHAPED_JSON_MARKER(shapedJson, document->_data);
+    TRI_EXTRACT_SHAPED_JSON_MARKER(shapedJson, document->_data);
       
-      acc = TRI_FindAccessorVocShaper(pqIndex->base._collection->_shaper, shapedJson._sid, shape);
+    acc = TRI_FindAccessorVocShaper(pqIndex->base._collection->_shaper, shapedJson._sid, shape);
 
-      if (acc == NULL || acc->_shape == NULL) {
-        TRI_Free(TRI_UNKNOWN_MEM_ZONE, pqElement->fields);
-        return -1;
-      }  
+    if (acc == NULL || acc->_shape == NULL) {
+      TRI_Free(TRI_UNKNOWN_MEM_ZONE, pqElement->_subObjects);
+      return -1;
+    }  
       
-      // ..........................................................................
-      // Determine if the attribute is of the type double -- if not for now
-      // ignore this document
-      // ..........................................................................
+    // ..........................................................................
+    // Extract the field
+    // ..........................................................................    
 
-      if (acc->_shape->_type !=  TRI_SHAPE_NUMBER) {
-        TRI_Free(TRI_UNKNOWN_MEM_ZONE, pqElement->fields);
-        return -2;    
-      }    
-      
-      // ..........................................................................
-      // Extract the field
-      // ..........................................................................    
-
-      if (! TRI_ExecuteShapeAccessor(acc, &shapedJson, &shapedObject)) {
-        TRI_Free(TRI_UNKNOWN_MEM_ZONE, pqElement->fields);
-        return TRI_set_errno(TRI_ERROR_INTERNAL);
-      }
-      
-      // ..........................................................................
-      // Store the field
-      // ..........................................................................    
-
-      pqElement->fields[j] = shapedObject;
+    if (! TRI_ExecuteShapeAccessor(acc, &shapedJson, &shapedObject)) {
+      TRI_Free(TRI_UNKNOWN_MEM_ZONE, pqElement->_subObjects);
+      return TRI_set_errno(TRI_ERROR_INTERNAL);
     }
-  }
-  
-  else {
-    return TRI_set_errno(TRI_ERROR_INTERNAL);
+      
+    // ..........................................................................
+    // Store the field
+    // ..........................................................................    
+
+    pqElement->_subObjects[j]._sid = shapedObject._sid;
+    pqElement->_subObjects[j]._length = shapedObject._data.length;
+    pqElement->_subObjects[j]._offset = ((char const*) shapedObject._data.data) - ((char const*) document->_data);
   }
   
   return TRI_ERROR_NO_ERROR;
 }
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief attempts to add a document to a priority queue index
 ////////////////////////////////////////////////////////////////////////////////
 
 static int InsertPriorityQueueIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc) {
-  PQIndexElement pqElement;
+  TRI_pq_index_element_t pqElement;
   TRI_priorityqueue_index_t* pqIndex;
   int res;
 
@@ -1048,17 +968,17 @@ static int InsertPriorityQueueIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc
   // These will be used for adding the document to the priority queue
   // ............................................................................
     
-  pqElement.numFields  = pqIndex->_paths._length;
-  pqElement.fields     = TRI_Allocate(TRI_UNKNOWN_MEM_ZONE, sizeof(TRI_shaped_json_t) * pqElement.numFields, false);
-  pqElement.collection = pqIndex->base._collection;
+  pqElement.numFields   = pqIndex->_paths._length;
+  pqElement._subObjects = TRI_Allocate(TRI_UNKNOWN_MEM_ZONE, sizeof(TRI_shaped_sub_t) * pqElement.numFields, false);
+  pqElement.collection  = pqIndex->base._collection;
   
   
-  if (pqElement.fields == NULL) {
+  if (pqElement._subObjects == NULL) {
     LOG_WARNING("out-of-memory in InsertPriorityQueueIndex");
     return TRI_set_errno(TRI_ERROR_OUT_OF_MEMORY);
   }  
 
-  res = PriorityQueueIndexHelper(pqIndex, &pqElement, doc, NULL);
+  res = PriorityQueueIndexHelper(pqIndex, &pqElement, doc);
   
 
   // ............................................................................
@@ -1194,7 +1114,7 @@ static void RemoveIndexPriorityQueueIndex (TRI_index_t* idx, TRI_primary_collect
 ////////////////////////////////////////////////////////////////////////////////
 
 static int RemovePriorityQueueIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc) {
-  PQIndexElement pqElement;
+  TRI_pq_index_element_t pqElement;
   TRI_priorityqueue_index_t* pqIndex;
   int res;
   
@@ -1210,14 +1130,14 @@ static int RemovePriorityQueueIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc
   }
 
   // ............................................................................
-  // Allocate some memory for the PQIndexElement structure
+  // Allocate some memory for the TRI_pq_index_element_t structure
   // ............................................................................
 
-  pqElement.numFields  = pqIndex->_paths._length;
-  pqElement.fields     = TRI_Allocate( TRI_UNKNOWN_MEM_ZONE, sizeof(TRI_shaped_json_t) * pqElement.numFields, false);
-  pqElement.collection = pqIndex->base._collection;
+  pqElement.numFields   = pqIndex->_paths._length;
+  pqElement._subObjects = TRI_Allocate( TRI_UNKNOWN_MEM_ZONE, sizeof(TRI_shaped_sub_t) * pqElement.numFields, false);
+  pqElement.collection  = pqIndex->base._collection;
 
-  if (pqElement.fields == NULL) {
+  if (pqElement._subObjects == NULL) {
     LOG_WARNING("out-of-memory in RemovePriorityQueueIndex");
     return TRI_set_errno(TRI_ERROR_OUT_OF_MEMORY);
   }  
@@ -1226,7 +1146,7 @@ static int RemovePriorityQueueIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc
   // Fill the json field list from the document
   // ..........................................................................
 
-  res = PriorityQueueIndexHelper(pqIndex, &pqElement, doc, NULL);
+  res = PriorityQueueIndexHelper(pqIndex, &pqElement, doc);
   
   
   // ............................................................................
@@ -1410,10 +1330,9 @@ void TRI_FreePriorityQueueIndex(TRI_index_t* idx) {
 /// PQIndexElement* result (which could be null)
 ////////////////////////////////////////////////////////////////////////////////
 
-PQIndexElements* TRI_LookupPriorityQueueIndex(TRI_index_t* idx, TRI_json_t* parameterList) {
-
+PQIndexElements* TRI_LookupPriorityQueueIndex (TRI_index_t* idx,
+                                               size_t n) {
   TRI_priorityqueue_index_t* pqIndex;
-  PQIndexElements* result;
   size_t           j;
   uint64_t         numElements;
   TRI_json_t*      jsonObject;  
@@ -1425,58 +1344,12 @@ PQIndexElements* TRI_LookupPriorityQueueIndex(TRI_index_t* idx, TRI_json_t* para
 
   pqIndex = (TRI_priorityqueue_index_t*) idx;
   
-  
-  // ..............................................................................
-  // The parameter list should consist of exactly one parameter of the type number
-  // which represents the first 'n' elements on the priority queue. If the 
-  // parameter list is empty, then 'n' defaults to 1.
-  // ..............................................................................
-
-  if (parameterList == NULL) {  
-    result = PQIndex_top(pqIndex->_pqIndex,1);
-    return result;  
-  }
-
-  
-  if (parameterList->_value._objects._length == 0) {
-    result = PQIndex_top(pqIndex->_pqIndex,1);
-    return result;  
-  }
-  
-  if (parameterList->_value._objects._length != 1) {
-    TRI_set_errno(TRI_ERROR_INTERNAL);
-    LOG_WARNING("invalid parameter sent to LookupPriorityQueueIndex");
-    return NULL;
-  }  
-  
-
-  numElements = 0;  
-    
-  for (j = 0; j < parameterList->_value._objects._length; ++j) {
-    jsonObject = (TRI_json_t*) (TRI_AtVector(&(parameterList->_value._objects),j));
-    if (jsonObject->_type == TRI_JSON_NUMBER) {
-      numElements = jsonObject->_value._number;
-      break;
-    }  
-  }
-
-  if (numElements == 0) {
-    TRI_set_errno(TRI_ERROR_INTERNAL);
-    LOG_WARNING("invalid parameter sent to LookupPriorityQueueIndex - request ignored");
-    return NULL;
-  }
-  
-  result = PQIndex_top(pqIndex->_pqIndex,numElements);
-  return result;  
-  
+  return PQIndex_top(pqIndex->_pqIndex, n);
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @}
 ////////////////////////////////////////////////////////////////////////////////
-
-
 
 // -----------------------------------------------------------------------------
 // --SECTION--                                                    SKIPLIST INDEX
@@ -2562,12 +2435,16 @@ TRI_index_iterator_t* TRI_LookupBitarrayIndex(TRI_index_t* idx,
   // .........................................................................
   
   errorResult = FillLookupBitarrayOperator(indexOperator, baIndex->base._collection); 
+
   if (errorResult != TRI_ERROR_NO_ERROR) {
     return NULL;
   }  
   
-  
-  iteratorResult = BitarrayIndex_find(baIndex->_bitarrayIndex, indexOperator, &baIndex->_paths, idx, NULL);
+  iteratorResult = BitarrayIndex_find(baIndex->_bitarrayIndex,
+                                      indexOperator,
+                                      &baIndex->_paths,
+                                      baIndex,
+                                      NULL);
 
   TRI_FreeIndexOperator(indexOperator); 
   
@@ -2579,7 +2456,7 @@ TRI_index_iterator_t* TRI_LookupBitarrayIndex(TRI_index_t* idx,
 ////////////////////////////////////////////////////////////////////////////////
 
 static int BitarrayIndexHelper(const TRI_bitarray_index_t* baIndex, 
-                               BitarrayIndexElement* element,
+                               TRI_bitarray_index_key_t* element,
                                const TRI_doc_mptr_t* document,
                                const TRI_shaped_json_t* shapedDoc) {
 
@@ -2693,7 +2570,7 @@ static int BitarrayIndexHelper(const TRI_bitarray_index_t* baIndex,
 
 static int InsertBitarrayIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc) {
 
-  BitarrayIndexElement element;
+  TRI_bitarray_index_key_t element;
   TRI_bitarray_index_t* baIndex;
   int result;
   
@@ -2940,35 +2817,23 @@ static void RemoveIndexBitarrayIndex (TRI_index_t* idx, TRI_primary_collection_t
 ////////////////////////////////////////////////////////////////////////////////
 
 static int RemoveBitarrayIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc) {
-  BitarrayIndexElement element;
+  TRI_bitarray_index_key_t element;
   TRI_bitarray_index_t* baIndex;
   int result;
-  
 
   // ............................................................................
   // Obtain the bitarray index structure
   // ............................................................................
   
   baIndex = (TRI_bitarray_index_t*) idx;
-  if (idx == NULL) {
-    LOG_WARNING("internal error in RemoveBitarrayIndex");
-    return TRI_ERROR_INTERNAL;
-  }
-
 
   // ............................................................................
   // Allocate some memory for the element structure
   // ............................................................................
 
   element.numFields  = baIndex->_paths._length;
-  element.fields     = TRI_Allocate( TRI_UNKNOWN_MEM_ZONE, sizeof(TRI_shaped_json_t) * element.numFields, false);
+  element.fields     = TRI_Allocate(TRI_CORE_MEM_ZONE, sizeof(TRI_shaped_json_t) * element.numFields, false);
   element.collection = baIndex->base._collection;
-  
-  if (element.fields == NULL) {
-    LOG_WARNING("out-of-memory in RemoveBitarrayIndex");
-    return TRI_ERROR_OUT_OF_MEMORY;
-  }  
-
   
   // ..........................................................................
   // Fill the json field list with values from the document 
@@ -2983,7 +2848,6 @@ static int RemoveBitarrayIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc) {
   // ..........................................................................
   
   if (result != TRI_ERROR_NO_ERROR) {
-
   
     // ........................................................................
     // Check what type of error we received. If 'bad' error, then return
@@ -2995,12 +2859,10 @@ static int RemoveBitarrayIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc) {
       // Deallocate memory allocated to element.fields above
       // ......................................................................
     
-      TRI_Free(TRI_UNKNOWN_MEM_ZONE, element.fields);
-    
+      TRI_Free(TRI_CORE_MEM_ZONE, element.fields);
       return result;    
     }    
 
-    
     // ........................................................................
     // If we support undefined documents in the index, then pass this on, 
     // otherwise return an error. Note that, eventually it may be slightly
@@ -3009,17 +2871,16 @@ static int RemoveBitarrayIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc) {
     // ........................................................................
 
     if (! baIndex->_supportUndef) {
+
       // ......................................................................
       // Deallocate memory allocated to element.fields above
       // ......................................................................
     
-      TRI_Free(TRI_UNKNOWN_MEM_ZONE, element.fields);
+      TRI_Free(TRI_CORE_MEM_ZONE, element.fields);
     
       return TRI_ERROR_NO_ERROR;    
     }
-    
   }
-  
   
   // ............................................................................
   // Attempt to remove document from index
@@ -3027,13 +2888,11 @@ static int RemoveBitarrayIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc) {
   
   result = BitarrayIndex_remove(baIndex->_bitarrayIndex, &element);
 
-
   // ............................................................................
   // Deallocate memory allocated to element.fields above
   // ............................................................................
     
-  TRI_Free(TRI_UNKNOWN_MEM_ZONE, element.fields);
-  
+  TRI_Free(TRI_CORE_MEM_ZONE, element.fields);
   return result;
 }
 

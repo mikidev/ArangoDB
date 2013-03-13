@@ -462,7 +462,7 @@ void TRI_FreeEdgeIndex (TRI_index_t*);
 /// @{
 ////////////////////////////////////////////////////////////////////////////////
 
-PQIndexElements* TRI_LookupPriorityQueueIndex (TRI_index_t*, TRI_json_t*);
+PQIndexElements* TRI_LookupPriorityQueueIndex (TRI_index_t*, size_t);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief creates a priority queue index

@@ -56,7 +56,6 @@ struct TRI_skiplist_s;
 struct TRI_skiplist_multi_s;
 struct TRI_skiplist_node_s;
 struct TRI_doc_mptr_s;
-struct TRI_shaped_sub_s;
 
 // -----------------------------------------------------------------------------
 // --SECTION--                                        skiplistIndex public types
@@ -84,10 +83,10 @@ typedef struct {
 TRI_skiplist_index_key_t;
 
 typedef struct {
-  size_t numFields;                     // the number of fields
-  struct TRI_shaped_sub_s* _subObjects; // list of shaped json objects which the collection should know about
-  struct TRI_doc_mptr_s* _document;     // master document pointer
-  void* collection;                     // pointer to the collection;
+  size_t numFields;                 // the number of fields
+  TRI_shaped_sub_t* _subObjects;    // list of shaped json objects which the collection should know about
+  struct TRI_doc_mptr_s* _document; // master document pointer
+  void* collection;                 // pointer to the collection;
 } 
 TRI_skiplist_index_element_t;
 
