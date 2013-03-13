@@ -287,7 +287,7 @@ int PQIndex_insert (PQIndex* idx, TRI_pq_index_element_t* element) {
 /// @brief removes an item from the priority queue (not necessarily the top most)
 ////////////////////////////////////////////////////////////////////////////////
 
-int PQIndex_remove (PQIndex* idx, TRI_pq_index_element_t* element) {
+int PQIndex_remove (PQIndex* idx, TRI_doc_mptr_t const* doc) {
   TRI_pq_index_element_t* item;  
   bool ok;
   
@@ -295,15 +295,11 @@ int PQIndex_remove (PQIndex* idx, TRI_pq_index_element_t* element) {
     return TRI_ERROR_ARANGO_INDEX_PQ_REMOVE_FAILED;
   }
 
-  if (element == NULL) {
-    return TRI_ERROR_ARANGO_INDEX_PQ_REMOVE_FAILED;
-  }
-  
   // ...........................................................................
   // Check if item exists in the associative array.
   // ...........................................................................
 
-  item = TRI_FindByKeyAssociativeArray(idx->_aa, element->_document);
+  item = TRI_FindByKeyAssociativeArray(idx->_aa, CONST_CAST(doc));
 
   if (item == NULL) {
     return TRI_ERROR_ARANGO_INDEX_PQ_REMOVE_ITEM_MISSING;
@@ -313,7 +309,7 @@ int PQIndex_remove (PQIndex* idx, TRI_pq_index_element_t* element) {
   // Remove item from the priority queue
   // ...........................................................................
   
-  ok = idx->_pq->remove(idx->_pq,item->pqSlot, true);
+  ok = idx->_pq->remove(idx->_pq, item->pqSlot, true);
  
   // ...........................................................................
   // Remove item from associative array

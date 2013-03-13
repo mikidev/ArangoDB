@@ -47,6 +47,8 @@ extern "C" {
 #endif
 
 
+struct TRI_doc_mptr_s;
+
 // -----------------------------------------------------------------------------
 // --SECTION--                                 priority queue index public types
 // -----------------------------------------------------------------------------
@@ -139,7 +141,7 @@ int PQIndex_insert (PQIndex*, TRI_pq_index_element_t*);
 /// @brief removes an item from the priority queue (not necessarily the top most)
 ////////////////////////////////////////////////////////////////////////////////
 
-int PQIndex_remove (PQIndex*, TRI_pq_index_element_t*); 
+int PQIndex_remove (PQIndex*, struct TRI_doc_mptr_s const*); 
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief returns the top most item without removing it from the queue

@@ -1114,9 +1114,7 @@ static void RemoveIndexPriorityQueueIndex (TRI_index_t* idx, TRI_primary_collect
 ////////////////////////////////////////////////////////////////////////////////
 
 static int RemovePriorityQueueIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc) {
-  TRI_pq_index_element_t pqElement;
   TRI_priorityqueue_index_t* pqIndex;
-  int res;
   
   // ............................................................................
   // Obtain the priority queue index structure
@@ -1129,58 +1127,7 @@ static int RemovePriorityQueueIndex (TRI_index_t* idx, TRI_doc_mptr_t const* doc
     return TRI_set_errno(TRI_ERROR_INTERNAL);
   }
 
-  // ............................................................................
-  // Allocate some memory for the TRI_pq_index_element_t structure
-  // ............................................................................
-
-  pqElement.numFields   = pqIndex->_paths._length;
-  pqElement._subObjects = TRI_Allocate( TRI_UNKNOWN_MEM_ZONE, sizeof(TRI_shaped_sub_t) * pqElement.numFields, false);
-  pqElement.collection  = pqIndex->base._collection;
-
-  if (pqElement._subObjects == NULL) {
-    LOG_WARNING("out-of-memory in RemovePriorityQueueIndex");
-    return TRI_set_errno(TRI_ERROR_OUT_OF_MEMORY);
-  }  
-  
-  // ..........................................................................
-  // Fill the json field list from the document
-  // ..........................................................................
-
-  res = PriorityQueueIndexHelper(pqIndex, &pqElement, doc);
-  
-  
-  // ............................................................................
-  // It is possible that this document does not have the necessary attributes
-  // (keys) to participate in this index. For now report this as an error. Todo,
-  // add its own unique error code so that the calling function can take the
-  // appropriate action.
-  // ............................................................................
-  
-  if (res == -1) {
-    return TRI_set_errno(TRI_ERROR_INTERNAL);
-  }
-  
-  // ............................................................................
-  // It is possible that while we have the correct attribute name, the type is
-  // not double. Skip this document for now.  
-  // ............................................................................
-  
-  else if (res == -2) {
-    return TRI_ERROR_NO_ERROR;
-  } 
-
-  
-  else if (res != TRI_ERROR_NO_ERROR) {
-    return res;
-  }    
-  
-  // ............................................................................
-  // Attempt the removal for unique/non-unique priority queue indexes
-  // ............................................................................
-  
-  res = PQIndex_remove(pqIndex->_pqIndex, &pqElement);
-  
-  return res;
+  return PQIndex_remove(pqIndex->_pqIndex, doc);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1333,10 +1280,6 @@ void TRI_FreePriorityQueueIndex(TRI_index_t* idx) {
 PQIndexElements* TRI_LookupPriorityQueueIndex (TRI_index_t* idx,
                                                size_t n) {
   TRI_priorityqueue_index_t* pqIndex;
-  size_t           j;
-  uint64_t         numElements;
-  TRI_json_t*      jsonObject;  
-  
   
   if (idx == NULL) {
     return NULL;
