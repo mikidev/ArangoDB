@@ -326,7 +326,7 @@ static bool RemovePQueue (TRI_pqueue_t* pq, uint64_t position, bool destroyItem)
   pq->updateStoragePQ(pq, thisItem, 0);
 
   if (destroyItem) {
-    pq->clearStoragePQ(pq,thisItem);
+    pq->clearStoragePQ(pq, thisItem);
   }  
   
   // ...........................................................................

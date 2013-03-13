@@ -359,16 +359,24 @@ PQIndexElements* PQIndex_top (PQIndex* idx, uint64_t numElements) {
       return NULL;
     }
 
-    result->_elements = TRI_Allocate(TRI_UNKNOWN_MEM_ZONE, sizeof(TRI_pq_index_element_t) * numElements, false);
+    element = idx->_pq->top(idx->_pq);
 
-    if (result->_elements == NULL) {
-      TRI_Free(TRI_UNKNOWN_MEM_ZONE, result);
-      TRI_set_errno(TRI_ERROR_OUT_OF_MEMORY);
-      return NULL;
-    }     
+    if (element == NULL) {
+      result->_numElements = 0;
+      result->_elements = NULL;
+    }
+    else {
+      result->_elements = TRI_Allocate(TRI_UNKNOWN_MEM_ZONE, sizeof(TRI_pq_index_element_t) * numElements, false);
 
-    result->_numElements = numElements;
-    result->_elements[0] = *((TRI_pq_index_element_t*)(idx->_pq->top(idx->_pq)));
+      if (result->_elements == NULL) {
+        TRI_Free(TRI_UNKNOWN_MEM_ZONE, result);
+        TRI_set_errno(TRI_ERROR_OUT_OF_MEMORY);
+        return NULL;
+      }
+
+      result->_numElements = numElements;
+      result->_elements[0] = *element;
+    }
 
     return result;
   }  
@@ -395,7 +403,7 @@ PQIndexElements* PQIndex_top (PQIndex* idx, uint64_t numElements) {
     }      
     
     tempResult._elements[j] = *element;
-    ok = idx->_pq->remove(idx->_pq,element->pqSlot, false);
+    ok = idx->_pq->remove(idx->_pq, element->pqSlot, false);
 
     if (!ok) {
       break;
@@ -460,7 +468,7 @@ static void ClearStoragePQIndex (TRI_pqueue_t* pq, void* item) {
     return;
   }
 
-  TRI_Free(TRI_UNKNOWN_MEM_ZONE, element->_document);
+  TRI_Free(TRI_UNKNOWN_MEM_ZONE, element->_subObjects);
   return;
 }
 
